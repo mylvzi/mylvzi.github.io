@@ -1,0 +1,1123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>二分查找算法系列-概念讲解-应用场景-大量例题讲解</title>
+    <url>/2026/03/30/binary-search-boundaries/</url>
+    <content><![CDATA[<p>二分查找算法是时间复杂度为 <code>O(logN)</code> 的搜索算法，常用于处理 <code>在有序数组中查找元素</code> 的相关题目，核心思路十分固定，大致可以分为三种类型:</p>
+<ol>
+<li>朴素二分查找</li>
+<li>查找左端点的二分查找</li>
+<li>查找右端点的二分查找</li>
+</ol>
+<h1 id="一-朴素二分查找"><a href="#一-朴素二分查找" class="headerlink" title="一.朴素二分查找"></a>一.朴素二分查找</h1><p><code>模版</code></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">search</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> target)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">left</span> <span class="operator">=</span> <span class="number">0</span>, right = arr.length - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(left &lt;= right) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> left + (right - left) / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span>(arr[mid] &gt; target) right = mid - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(arr[mid] &lt; target) left = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">return</span> mid;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>说明：</p>
+<ol>
+<li>为什么是 <code>left &lt;= right</code>? 因为当 left 和 right 处于同一个位置时，得到的才是要查找的元素</li>
+<li>为什么 <code>mid = left + (right - left) / 2</code>? 其实 mid 的计算方式有两种，一种是代码所写的，另一种是 <code>mid = left + (right - left + 1) / 2</code>，这两种写法的区别在于 <code>当集合元素的数量为偶数时,所指的位置不同</code></li>
+</ol>
+<p><img src="/images/posts/binary-search/img_01.png" alt="在这里插入图片描述"></p>
+<p>这种区别在朴素二分查找中并不会体现，两种方式都是成立的</p>
+<p>最大的区别在于这里集合并不是完全降序/升序的，是存在平直路段的，这些平直路段要查找他们的起始位置和终止位置，而不是像朴素二分一样在一个完全升序/降序的区间内查找某一个数字</p>
+<p>左端点:<br><code>left &lt; right</code></p>
+<ol>
+<li>left == right 时，就是最终结果，无需判断</li>
+<li>判断会带来死循环，因为 right = mid</li>
+</ol>
+<h1 id="二-查找左端点"><a href="#二-查找左端点" class="headerlink" title="二.查找左端点"></a>二.查找左端点</h1><p><img src="/images/posts/binary-search/img_02.png" alt="在这里插入图片描述"></p>
+<p><code>说明</code></p>
+<ol>
+<li><code>right = mid</code>，是为了处理 mid 刚好就是要查找的元素，如果 <code>right = mid - 1</code>，就不是左端点了</li>
+<li><code>right = mid</code>，为了防止死循环，mid 要落到 left 头上，所以在计算中点是使用 <code>mid = l + (r-l)/2</code></li>
+</ol>
+<h1 id="三-查找右端点"><a href="#三-查找右端点" class="headerlink" title="三.查找右端点"></a>三.查找右端点</h1><p><img src="/images/posts/binary-search/img_03.png" alt="在这里插入图片描述"></p>
+<p><code>说明</code></p>
+<ol>
+<li><code>left = mid</code>，是为了处理 mid 刚好就是要查找的元素，如果 <code>left = mid + 1</code>，就不是右端点了</li>
+<li><code>left = mid</code>，为了防止死循环，mid 要落到 right 头上，所以在计算中点是使用 <code>mid = l + (r-l+1)/2</code></li>
+</ol>
+<h1 id="四-例题讲解"><a href="#四-例题讲解" class="headerlink" title="四.例题讲解"></a>四.例题讲解</h1><p><strong>题目一</strong>:<a href="https://leetcode.cn/problems/maximum-count-of-positive-integer-and-negative-integer/description/">正整数和负整数的最大计数</a></p>
+<p><strong>分析</strong></p>
+<ul>
+<li>注意本题的数组顺序是 <strong>非递减</strong></li>
+<li>完成两个操作就能得到答案<ol>
+<li>找到负数最大值的下标(找右端点)</li>
+<li>找到正数最小值的下标(找左端点)</li>
+</ol>
+</li>
+</ul>
+<p><img src="/images/posts/binary-search/img_04.png" alt="在这里插入图片描述"></p>
+<p><code>注意</code>: 数组元素全部 &gt;0 或 &lt;0 的情况</p>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">maximumCount</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length, i1 = -<span class="number">1</span>, i2 = -<span class="number">1</span>, l = <span class="number">0</span>, r = n - <span class="number">1</span>, ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1.右端点</span></span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + (r - l + <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[mid] &gt;= <span class="number">0</span>) r = mid - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> l = mid;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(nums[l] &gt;= <span class="number">0</span>) i1 = <span class="number">0</span>;<span class="comment">// 全为正数  负数的个数为0</span></span><br><span class="line">        <span class="keyword">else</span> i1 = l + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.左端点</span></span><br><span class="line">        l = <span class="number">0</span>; r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + (r - l) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[mid] &lt;= <span class="number">0</span>) l = mid + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> r = mid;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span>(nums[r] &lt;= <span class="number">0</span>) i2 = <span class="number">0</span>;<span class="comment">// 全为负数  正数的个数为0</span></span><br><span class="line">        <span class="keyword">else</span> i2 = n - r;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Math.max(i1, i2);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<p>相似题目1:<a href="https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/description/">在排序数组中查找元素的第一个和最后一个位置</a></p>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span>[] <span class="title function_">searchRange</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> target)</span> {</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">2</span>];</span><br><span class="line">        ret[<span class="number">0</span>] = ret[<span class="number">1</span>] = -<span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length, l = <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(n == <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">int</span>[]{-<span class="number">1</span>,-<span class="number">1</span>};</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1.左端点</span></span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> l + (r - l) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[m] &lt; target) l = m + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> r = m;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(nums[l] == target) ret[<span class="number">0</span>] = l;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">        l = <span class="number">0</span>; r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="comment">// 2.右端点</span></span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> l + (r - l + <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[m] &lt;= target) l = m;</span><br><span class="line">            <span class="keyword">else</span> r = m - <span class="number">1</span>;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        ret[<span class="number">1</span>] = r;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<p>相似题目2:<a href="https://leetcode.cn/problems/count-negative-numbers-in-a-sorted-matrix/submissions/538660026/">统计有序矩阵中负数的个数</a></p>
+<p>分析: 对每一个一维数组做一次查找左端点即可(<code>O(m + n)</code>)</p>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">countNegatives</span><span class="params">(<span class="type">int</span>[][] grid)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> grid.length, n = grid[<span class="number">0</span>].length, ret = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span>[] k : grid) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">l</span> <span class="operator">=</span> <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">                <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + (r - l) / <span class="number">2</span>;</span><br><span class="line">                <span class="keyword">if</span>(k[mid] &gt;= <span class="number">0</span>) l = mid + <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">else</span> r = mid;</span><br><span class="line">            }</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(k[r] &gt;= <span class="number">0</span>) ret += <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">else</span> ret += n - r;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<p>相似题目3:<a href="https://leetcode.cn/problems/first-bad-version/description/">第一个错误的版本</a>(找左端点)</p>
+<hr>
+<p><strong>题目2</strong>:<a href="https://leetcode.cn/problems/search-insert-position/submissions/538668875/">搜索插入的位置</a></p>
+<ul>
+<li>关于二分算法的一个重要结论: <code>对于二分查找算法，如果在有序数组中找不到目标值，那么 left 指针最终会位于比目标值大且离目标值最近的位置。</code></li>
+</ul>
+<p><img src="/images/posts/binary-search/img_05.png" alt="在这里插入图片描述"></p>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">searchInsert</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> target)</span> {</span><br><span class="line">        <span class="comment">// 左端点</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length, l = <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(l &lt;= r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + (r - l) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[mid] &lt; target) l = mid + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span>(nums[mid] &gt; target) r = mid - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">return</span> mid;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> l;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>一开始想的是寻找区间的左端点，但是发现有很多种特殊情况需要判断，而且如果按照自己的思路，其实查找左/右端点都行，但是都不是正确思路</p>
+</blockquote>
+<hr>
+<p><strong>题目3：</strong><a href="https://leetcode.cn/problems/que-shi-de-shu-zi-lcof/">点名</a></p>
+<p><code>二分解法</code>:</p>
+<ul>
+<li>利用 <code>二段性</code>，缺失数字之前的所有数字，<code>下标与其对应的数字相等</code>; 缺失数字之后的所有数字，<code>下标与其对应的数字不等</code>;</li>
+</ul>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">takeAttendance</span><span class="params">(<span class="type">int</span>[] records)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> records.length, l = <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + (r - l) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(records[mid] == mid)l = mid + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> r = mid;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> l == records[l] ? l + <span class="number">1</span> : l;<span class="comment">// 处理细节问题  缺失的数字是数组中最后一个数字的下一位</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>题目四</strong>:<a href="https://leetcode.cn/problems/find-peak-element/">寻找峰值</a></p>
+<p><img src="/images/posts/binary-search/img_06.png" alt="在这里插入图片描述"></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">findPeakElement</span><span class="params">(<span class="type">int</span>[] arr)</span> {</span><br><span class="line">        <span class="comment">// 查找左端点</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> arr.length, l = <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(n == <span class="number">1</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(l &lt; r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> l + ((r - l) &gt;&gt; <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span>(arr[mid + <span class="number">1</span>] &gt; arr[mid]) l = mid + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> r = mid;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> l;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+
+<p><strong>题目五</strong>:<a href="https://leetcode.cn/problems/find-a-peak-element-ii/description/">寻找峰值II</a></p>
+<p><strong>分析</strong></p>
+<ul>
+<li>本题的思考难点是如何实现题目所说 <code>O(m log(n)) 或 O(n log(m))</code> 时间复杂度，一看到带 log 又是查找相关的算法，想到大概率是要使用二分查找算法，再加上 <code>寻找峰值I</code> 中就使用了 <code>二分查找算法</code>，如何迁移到本题呢? 如何将一维解决方案扩展到二维呢? 其实这些题目最关键的突破点在于要深刻理解 <code>二维数组是一维数组的数组</code>，二维数组的每一个元素都是一个一维数组</li>
+</ul>
+<p><strong>代码</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="comment">// 二维的二分查找算法  多了一个找中间列最大值将二维数组顺时针旋转90°瞬间就能理解</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span>[] <span class="title function_">findPeakGrid</span><span class="params">(<span class="type">int</span>[][] mat)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> mat.length, n = mat[<span class="number">0</span>].length, l = <span class="number">0</span>, r = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(l &lt;= r) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">midCol</span> <span class="operator">=</span> l + ((r - l) &gt;&gt; <span class="number">1</span>);</span><br><span class="line">            <span class="type">int</span> <span class="variable">maxRow</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 找出中间列最大值所在的行</span></span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++)</span><br><span class="line">                <span class="keyword">if</span>(mat[i][midCol] &gt; mat[maxRow][midCol])</span><br><span class="line">                    maxRow = i;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 判断左边和右边的数是否大于当前的数</span></span><br><span class="line">            <span class="type">boolean</span> <span class="variable">isLeftGreater</span> <span class="operator">=</span> (midCol - <span class="number">1</span> &gt;= <span class="number">0</span> &amp;&amp; mat[maxRow][midCol - <span class="number">1</span>] &gt; mat[maxRow][midCol]);</span><br><span class="line">            <span class="type">boolean</span> <span class="variable">isRightGreater</span> <span class="operator">=</span> (midCol + <span class="number">1</span> &lt; n &amp;&amp; mat[maxRow][midCol + <span class="number">1</span>] &gt; mat[maxRow][midCol]);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(!isLeftGreater &amp;&amp; !isRightGreater) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">int</span>[]{maxRow, midCol};</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span>(isLeftGreater) r = midCol - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> l = midCol + <span class="number">1</span>;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 照顾编译器</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">int</span>[]{-<span class="number">1</span>, -<span class="number">1</span>};</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/images/posts/binary-search/img_07.png" alt="在这里插入图片描述"></p>
+<p><code>总结</code>:</p>
+<ul>
+<li>对于二分查找的算法来说，难点在于的是识别出题目中 <code>隐含的二段性</code>，有些二段性不容易识别，比如 <code>寻找缺失的数字</code>，其二段性体现在下标与数字之间的关系；比如寻找峰值这道题目，二段性体现在与其周围数字之间的大小关系上;</li>
+<li>分析出二段性之后，判断是寻找左端点还是右端点；有的题目是左右端点都可以，有的只能在一端，具体问题具体分析</li>
+<li>注意查找左端点和查找右端点的两个注意事项，中点的计算，谁等于 mid</li>
+<li>多画图更好理解二段性</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>algorithm</tag>
+        <tag>leetcode</tag>
+        <tag>binary-search</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计</title>
+    <url>/2026/04/27/lru-lfu-cache-design/</url>
+    <content><![CDATA[<p>今天翻到《操作系统导论》（Operating Systems: Three Easy Pieces）里讲页面置换的那一章，忽然觉得书上的理论与 LeetCode 上的题目产生了奇妙的联结。虚拟内存管理中的“该换出哪一页”，和工程中随处可见的缓存淘汰策略，本质上在问同一个问题：<strong>如何用有限的空间，接住未来无限且不可预知的访问序列？</strong> 有没有想到 CPU 调度算法的 MLFQ?</p>
+<h2 id="一点背景：页交换与局部性"><a href="#一点背景：页交换与局部性" class="headerlink" title="一点背景：页交换与局部性"></a>一点背景：页交换与局部性</h2><p>操作系统在虚拟内存中为每个进程维护一个<strong>页表</strong>。进程看到的是一个巨大的虚拟地址空间, 虚拟地址空间的页称为 <strong>VPN（Virtual Page Number）</strong>，物理内存中的页帧则称为 <strong>PPN（Physical Page Number）</strong>。物理内存是所有进程的公共资源，当物理内存吃紧时(缺页异常Page Fault)，操作系统必须挑选一些物理页帧写回磁盘，把腾出来的帧分给急需的进程。这个动作叫做<strong>页交换</strong>，挑选牺牲帧的策略就是<strong>页面置换算法</strong>。</p>
+<p>为什么置换策略能工作？答案藏在<strong>局部性原理</strong>里。书中用两句话概括：</p>
+<ul>
+<li><strong>时间局部性</strong>：最近被访问的页面，很可能在不久的将来再次被访问。</li>
+<li><strong>空间局部性</strong>：被访问页面附近的页面，很可能马上也会被访问。</li>
+</ul>
+<p>理论上，最优置换算法是：淘汰未来最晚才会被访问的页面。这个策略能最大化未来的缓存命中率。但问题是，操作系统无法预知未来。所以现实系统只能基于历史访问记录做预测。</p>
+<p>历史经验大致有两个维度：</p>
+<ul>
+<li>第一，近期性。越是最近被访问过的页面，越可能很快再次被访问。</li>
+<li>第二，频率。越是经常被访问的页面，越可能继续被访问。</li>
+</ul>
+<p>LRU 利用的是近期性，LFU 利用的是频率。二者都是局部性原理在缓存管理中的具体体现。</p>
+<hr>
+<h2 id="一、LRU：最近最少使用"><a href="#一、LRU：最近最少使用" class="headerlink" title="一、LRU：最近最少使用"></a>一、LRU：最近最少使用</h2><p>LRU，全称 Least Recently Used，意思是淘汰最近最少使用的元素。</p>
+<p>它的核心假设是：</p>
+<blockquote>
+<p>最近访问过的数据，更有可能在不久之后再次被访问。</p>
+</blockquote>
+<p>这实际上对应了局部性原理中的时间局部性。程序运行时，经常会在一段时间内反复访问同一批地址。例如循环、函数调用栈、热点对象、缓存行等，都会体现这种局部性。</p>
+<p>在 LeetCode 的 LRU Cache 中，需要支持两个操作：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">get(key)</span><br><span class="line">put(key, value)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>并且要求平均时间复杂度为 <code>O(1)</code>。</p>
+<p>这个要求直接决定了数据结构设计。</p>
+<p>单用数组或链表不行，因为查找 key 需要 <code>O(n)</code>。</p>
+<p>单用 HashMap 也不行，因为它只能快速找到元素，不能快速知道谁是最近最少使用的元素。</p>
+<p>所以需要组合数据结构：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">HashMap + 双向链表</span><br></pre></td></tr></tbody></table></figure>
+
+<p>HashMap 负责根据 key 快速定位节点。</p>
+<p>双向链表负责维护访问顺序。</p>
+<p>链表头部表示最近使用，链表尾部表示最久未使用。每次访问一个节点，就把它移动到链表头部。每次缓存满了，就删除链表尾部的节点。</p>
+<hr>
+<h2 id="二、LRU-的节点设计"><a href="#二、LRU-的节点设计" class="headerlink" title="二、LRU 的节点设计"></a>二、LRU 的节点设计</h2><p>代码中的节点如下：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ListNode</span> {</span><br><span class="line">    <span class="type">int</span> key, val;</span><br><span class="line">    ListNode prev;</span><br><span class="line">    ListNode next;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="type">int</span> key, <span class="type">int</span> val) {</span><br><span class="line">        <span class="built_in">this</span>.key = key;</span><br><span class="line">        <span class="built_in">this</span>.val = val;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里必须同时保存 <code>key</code> 和 <code>val</code>。</p>
+<p>保存 <code>val</code> 是为了返回缓存值。</p>
+<p>保存 <code>key</code> 是为了在删除链表节点时，能够同步从 HashMap 中删除对应映射。</p>
+<p>如果节点里没有 <code>key</code>，当我们从链表尾部删除 LRU 节点时，就不知道应该从 HashMap 里删掉哪个 entry。</p>
+<p>这就是为什么缓存节点不只是 value，而是完整的 key-value entry。</p>
+<hr>
+<h2 id="三、为什么使用双向链表"><a href="#三、为什么使用双向链表" class="headerlink" title="三、为什么使用双向链表"></a>三、为什么使用双向链表</h2><p>LRU 的关键操作有两个：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">1. 把某个节点移动到头部</span><br><span class="line">2. 删除尾部节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果使用单向链表，删除某个节点时需要知道它的前驱节点，否则无法在 <code>O(1)</code> 时间内完成删除。</p>
+<p>双向链表的节点保存了 <code>prev</code> 和 <code>next</code>，因此可以直接断开当前节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(ListNode node)</span> {</span><br><span class="line">    hash.remove(node.key);</span><br><span class="line"></span><br><span class="line">    node.prev.next = node.next;</span><br><span class="line">    node.next.prev = node.prev;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这一步就是把节点从链表中摘除，同时从 HashMap 中删除。</p>
+<p>然后再把它插入到链表头部：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(ListNode node)</span> {</span><br><span class="line">    hash.put(node.key, node);</span><br><span class="line"></span><br><span class="line">    node.next = dummyHead.next;</span><br><span class="line">    dummyHead.next.prev = node;</span><br><span class="line"></span><br><span class="line">    dummyHead.next = node;</span><br><span class="line">    node.prev = dummyHead;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这样，访问过的节点就会被标记为最近使用。</p>
+<hr>
+<h2 id="四、虚拟头尾节点的作用"><a href="#四、虚拟头尾节点的作用" class="headerlink" title="四、虚拟头尾节点的作用"></a>四、虚拟头尾节点的作用</h2><p>代码里使用了两个哨兵节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">dummyHead = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">dummyTail = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">dummyHead.next = dummyTail;</span><br><span class="line">dummyTail.prev = dummyHead;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这两个节点不存储真实数据，只是为了简化边界条件。</p>
+<p>有了 dummyHead 和 dummyTail 之后，插入和删除逻辑就不需要额外判断：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">链表是否为空</span><br><span class="line">删除的是不是头节点</span><br><span class="line">删除的是不是尾节点</span><br><span class="line">插入时是否只有一个节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>真实节点永远位于：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">dummyHead &lt;-&gt; real nodes &lt;-&gt; dummyTail</span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以最近使用的节点是：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">dummyHead.next</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最久未使用的节点是：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">dummyTail.prev</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当缓存满了时，直接删除：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">remove(dummyTail.prev);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这就是 LRU 的置换动作。</p>
+<hr>
+<h2 id="五、LRU-的-get-与-put"><a href="#五、LRU-的-get-与-put" class="headerlink" title="五、LRU 的 get 与 put"></a>五、LRU 的 get 与 put</h2><p><code>get</code> 操作分两种情况。</p>
+<p>如果 key 不存在，说明缓存未命中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(!hash.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果 key 存在，说明缓存命中。此时不仅要返回 value，还要更新访问顺序：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">ListNode</span> <span class="variable">node</span> <span class="operator">=</span> hash.get(key);</span><br><span class="line">remove(node);</span><br><span class="line">insertInToFront(node);</span><br><span class="line"><span class="keyword">return</span> node.val;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里的“移动到头部”，在 OS 语境下可以理解为：这个页刚刚被访问过，因此它不应该成为近期被淘汰的对象。</p>
+<p><code>put</code> 操作也分几种情况。</p>
+<p>如果 key 已经存在，先删除旧节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(hash.containsKey(key))</span><br><span class="line">    remove(hash.get(key));</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果缓存容量已满，则删除尾部节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(hash.size() == capacity)</span><br><span class="line">    remove(dummyTail.prev);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后把新节点插入头部：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">insertInToFront(<span class="keyword">new</span> <span class="title class_">ListNode</span>(key, value));</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个设计保证了 <code>get</code> 和 <code>put</code> 的平均时间复杂度都是 <code>O(1)</code>。</p>
+<hr>
+<h2 id="六、LRU-与操作系统中的页面置换"><a href="#六、LRU-与操作系统中的页面置换" class="headerlink" title="六、LRU 与操作系统中的页面置换"></a>六、LRU 与操作系统中的页面置换</h2><p>从概念上看，LRU 很适合作为页面置换策略。</p>
+<p>如果一个页面很久没有被访问，那么它将来被访问的概率可能较低。淘汰它，看上去是合理的。</p>
+<p>但实际操作系统中，严格 LRU 并不常用。</p>
+<p>原因很简单：维护精确的 LRU 成本太高。</p>
+<p>每次内存访问都要更新链表位置，这意味着操作系统需要对每个页面访问维护复杂的数据结构。对于真实系统来说，这个开销不可接受。</p>
+<p>《操作系统导论》中讲到的 Clock Algorithm，也就是时钟算法，就是对 LRU 的一种近似实现。它不维护完整的访问顺序，而是在页表项或页框元数据中维护一个 use bit，也就是使用位。</p>
+<p>当页面被访问时，硬件或操作系统会把 use bit 置为 1。置换时，操作系统像时钟指针一样扫描页面：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">如果 use bit = 1，则清零并跳过</span><br><span class="line">如果 use bit = 0，则选择该页淘汰</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这不是精确 LRU，但它利用了类似的思想：最近被访问过的页面，会获得一次“续命”机会。</p>
+<p>所以，LeetCode 中的 LRU 是一种算法题里的理想化实现，而操作系统中的页面置换则更关注实现成本和硬件协作。</p>
+<hr>
+<h2 id="七、LFU：最不经常使用"><a href="#七、LFU：最不经常使用" class="headerlink" title="七、LFU：最不经常使用"></a>七、LFU：最不经常使用</h2><p>LFU，全称 Least Frequently Used，意思是淘汰访问频率最低的元素。</p>
+<p>它的核心假设是：</p>
+<blockquote>
+<p>历史上被访问次数越多的数据，将来继续被访问的可能性越高。</p>
+</blockquote>
+<p>这和 LRU 不同。</p>
+<p>LRU 看的是“最近有没有访问”。</p>
+<p>LFU 看的是“总共访问了多少次”。</p>
+<p>举个简单例子：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">容量 = 2</span><br><span class="line"></span><br><span class="line">访问序列：</span><br><span class="line">put(1)</span><br><span class="line">get(1)</span><br><span class="line">get(1)</span><br><span class="line">put(2)</span><br><span class="line">put(3)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>此时 key = 1 的访问频率最高，key = 2 的访问频率最低。</p>
+<p>如果要插入 key = 3，LFU 会淘汰 key = 2。</p>
+<p>这说明 LFU 更偏向长期热点数据。</p>
+<hr>
+<h2 id="八、LFU-的难点：频率相同时怎么办"><a href="#八、LFU-的难点：频率相同时怎么办" class="headerlink" title="八、LFU 的难点：频率相同时怎么办"></a>八、LFU 的难点：频率相同时怎么办</h2><p>LFU 的核心问题不是“谁频率最低”，而是：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">多个 key 的频率相同，应该删谁？</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LeetCode 题目要求：当频率相同时，淘汰最近最少使用的那个。</p>
+<p>也就是说，LFU 内部还要嵌套 LRU。</p>
+<p>整体策略是：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">先按频率淘汰</span><br><span class="line">频率相同，再按最近使用时间淘汰</span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以 LFU 的数据结构比 LRU 更复杂。</p>
+<p>代码中使用了两个 HashMap：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Map&lt;Integer, Node&gt; hash1; </span><br><span class="line">Map&lt;Integer, DoublyLinkedList&gt; hash2;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">hash1: key -&gt; Node</span><br><span class="line">hash2: freq -&gt; DoublyLinkedList</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>hash1</code> 用来根据 key 在 <code>O(1)</code> 时间内找到节点。</p>
+<p><code>hash2</code> 用来根据访问频率找到对应的频率桶。</p>
+<p>每一个频率桶内部是一条双向链表，用来维护相同频率下的 LRU 顺序。</p>
+<hr>
+<h2 id="九、LFU-的节点设计"><a href="#九、LFU-的节点设计" class="headerlink" title="九、LFU 的节点设计"></a>九、LFU 的节点设计</h2><p>LFU 的节点比 LRU 多了一个 <code>freq</code> 字段：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Node</span> {</span><br><span class="line">    <span class="type">int</span> key, val, freq;</span><br><span class="line">    Node prev, next;</span><br><span class="line"></span><br><span class="line">    Node(<span class="type">int</span> key, <span class="type">int</span> val, <span class="type">int</span> freq) {</span><br><span class="line">        <span class="built_in">this</span>.key = key;</span><br><span class="line">        <span class="built_in">this</span>.val = val;</span><br><span class="line">        <span class="built_in">this</span>.freq = freq;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">key: 缓存键</span><br><span class="line">val: 缓存值</span><br><span class="line">freq: 当前访问频率</span><br><span class="line">prev / next: 双向链表指针</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每次 <code>get</code> 一个 key，或者 <code>put</code> 更新已有 key，都要增加该节点的访问频率。</p>
+<p>这意味着节点需要从旧频率桶中删除，再插入到新频率桶中。</p>
+<p>例如，一个节点当前 <code>freq = 2</code>，访问一次后变成 <code>freq = 3</code>：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">freq = 2 的链表中删除该节点</span><br><span class="line">freq = 3 的链表头部插入该节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>插入头部表示：在当前这个频率下，它是最近使用的节点。</p>
+<hr>
+<h2 id="十、LFU-的频率桶"><a href="#十、LFU-的频率桶" class="headerlink" title="十、LFU 的频率桶"></a>十、LFU 的频率桶</h2><p>代码中定义了一个内部双向链表类：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DoublyLinkedList</span> {</span><br><span class="line">    <span class="type">Node</span> <span class="variable">dummyHead</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">    <span class="type">Node</span> <span class="variable">dummyTail</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">    <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    DoublyLinkedList() {</span><br><span class="line">        dummyHead.next = dummyTail;</span><br><span class="line">        dummyTail.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(Node node)</span> {</span><br><span class="line">        node.prev.next = node.next;</span><br><span class="line">        node.next.prev = node.prev;</span><br><span class="line">        size--;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(Node node)</span> {</span><br><span class="line">        node.next = dummyHead.next;</span><br><span class="line">        node.next.prev = node;</span><br><span class="line">        dummyHead.next = node;</span><br><span class="line">        node.prev = dummyHead;</span><br><span class="line">        size++;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isEmpty</span><span class="params">()</span> { </span><br><span class="line">        <span class="keyword">return</span> size == <span class="number">0</span>; </span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每个频率对应一条双向链表。</p>
+<p>可以把整个 LFU 结构理解为：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">freq = 1: head &lt;-&gt; nodeA &lt;-&gt; nodeB &lt;-&gt; tail</span><br><span class="line">freq = 2: head &lt;-&gt; nodeC &lt;-&gt; nodeD &lt;-&gt; tail</span><br><span class="line">freq = 3: head &lt;-&gt; nodeE &lt;-&gt; tail</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每条链表内部，越靠近头部，表示越近被访问。</p>
+<p>越靠近尾部，表示在当前频率下越久没有被访问。</p>
+<p>淘汰时，先找到最小频率 <code>minFreq</code>，再删除该频率链表尾部的节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line"><span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">minFreqList.remove(toDeleteNode);</span><br><span class="line">hash1.remove(toDeleteNode.key);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这正好实现了：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">先 LFU，再 LRU</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2 id="十一、minFreq-的作用"><a href="#十一、minFreq-的作用" class="headerlink" title="十一、minFreq 的作用"></a>十一、minFreq 的作用</h2><p>LFU 中还有一个关键变量：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> minFreq;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>它记录当前缓存中最小的访问频率。</p>
+<p>如果没有 <code>minFreq</code>，每次淘汰时就需要遍历所有频率桶，找到最小频率。这样复杂度就不是 <code>O(1)</code> 了。</p>
+<p>有了 <code>minFreq</code>，淘汰时可以直接定位最低频率桶：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当一个节点被访问后，它的频率增加。此时需要考虑：如果它原来所在的频率桶空了，并且这个频率刚好是 <code>minFreq</code>，那么 <code>minFreq</code> 就应该增加。</p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">    minFreq++;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>新插入节点的频率一定是 1，所以插入新节点后：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">minFreq = <span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个变量是 LFU 能够做到 <code>O(1)</code> 淘汰的关键。</p>
+<hr>
+<h2 id="十二、LFU-的-get-与-put"><a href="#十二、LFU-的-get-与-put" class="headerlink" title="十二、LFU 的 get 与 put"></a>十二、LFU 的 get 与 put</h2><p><code>get</code> 操作比较直接。</p>
+<p>如果 key 不存在，返回 -1：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (!hash1.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果 key 存在，更新频率：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">updateNode(node);</span><br><span class="line"><span class="keyword">return</span> node.val;</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>updateNode</code> 是 LFU 的核心逻辑：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">updateNode</span><span class="params">(Node node)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">curFreq</span> <span class="operator">=</span> node.freq++;</span><br><span class="line">    <span class="type">DoublyLinkedList</span> <span class="variable">curList</span> <span class="operator">=</span> hash2.get(curFreq);</span><br><span class="line">    curList.remove(node);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">        minFreq++;</span><br><span class="line"></span><br><span class="line">    hash2.computeIfAbsent(node.freq, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>())</span><br><span class="line">         .insertInToFront(node);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个函数做了三件事：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">1. 从旧频率桶中删除节点</span><br><span class="line">2. 更新 minFreq</span><br><span class="line">3. 把节点插入新频率桶头部</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>put</code> 操作分三种情况。</p>
+<p>第一，容量为 0，直接返回：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (capacity == <span class="number">0</span>) <span class="keyword">return</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第二，key 已经存在，更新值并增加频率：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (hash1.containsKey(key)) {</span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">    node.val = value;</span><br><span class="line">    updateNode(node);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第三，key 不存在。如果缓存已满，则执行置换：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (hash1.size() &gt;= capacity) {</span><br><span class="line">    <span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line">    <span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">    minFreqList.remove(toDeleteNode);</span><br><span class="line">    hash1.remove(toDeleteNode.key);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后插入新节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(key, value, <span class="number">1</span>);</span><br><span class="line">hash1.put(key, node);</span><br><span class="line">hash2.computeIfAbsent(<span class="number">1</span>, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">minFreq = <span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最终，LFU 的 <code>get</code> 和 <code>put</code> 也能做到平均 <code>O(1)</code>。</p>
+<hr>
+<h2 id="十三、LRU-与-LFU-的对比"><a href="#十三、LRU-与-LFU-的对比" class="headerlink" title="十三、LRU 与 LFU 的对比"></a>十三、LRU 与 LFU 的对比</h2><p>LRU 和 LFU 都是在尝试回答同一个问题：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">缓存满了，应该淘汰谁？</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但二者使用的历史信息不同。</p>
+<p>LRU 使用近期性：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">最近没有被访问的，优先淘汰。</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LFU 使用频率：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">访问次数最少的，优先淘汰。</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LRU 的优点是实现相对简单，对访问模式变化比较敏感。新的热点数据只要被频繁访问，就会不断移动到链表头部，不容易被淘汰。</p>
+<p>LRU 的缺点是容易受到一次性扫描污染。</p>
+<p>例如顺序扫描大量冷数据时，真正的热点数据可能会被挤出缓存。</p>
+<p>LFU 的优点是能保留长期热点数据。访问频率高的数据即使一段时间没被访问，也不容易被淘汰。</p>
+<p>LFU 的缺点是对历史频率过于敏感。一个数据过去很热，但现在已经不再使用，它仍然可能因为频率很高而长期占据缓存。</p>
+<p>所以，LRU 偏向“最近趋势”，LFU 偏向“长期统计”。</p>
+<p>在实际系统中，缓存策略通常不会采用教科书式的纯 LRU 或纯 LFU，而是做各种近似、衰减和混合。例如操作系统中的 Clock 算法，就是对 LRU 思想的低成本近似。</p>
+<hr>
+<p><em>本文代码对应 LeetCode 146. LRU 缓存和 460. LFU 缓存。参考书目：《操作系统导论》（Operating Systems: Three Easy Pieces）第 22 章“超越物理内存：策略”。</em></p>
+<p>附录:<br>LRU 算法代码, 链接: <a href="https://leetcode.cn/problems/lru-cache/">146. LRU 缓存 - 力扣（LeetCode）</a></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LRUCache</span> {</span><br><span class="line">    <span class="comment">// 虚拟内存的知识</span></span><br><span class="line">    <span class="comment">// 超越物理内存-页交换策略算法的一种-关键在于如何选择已存在的页进行交换-交换后，缓存命中的概率最大</span></span><br><span class="line">    <span class="comment">// 最优的算法：替换"最远将来被访问的页面"    </span></span><br><span class="line">    <span class="comment">// LRU:Least-Recently Used  最近最少使用  也是页交换策略的一种  利用了局部性原理</span></span><br><span class="line">    <span class="comment">// 计算机界的二八原则</span></span><br><span class="line">    <span class="comment">// 关键在于使用什么样的数据结构去实现LRU:考虑页的两种历史经验</span></span><br><span class="line">    <span class="comment">// 1.频率:越是经常被访问的,越是下次最可能被访问</span></span><br><span class="line">    <span class="comment">// 2.近期性: 越是最近被访问的,越是下次最可能被访问</span></span><br><span class="line">    <span class="comment">// 对于LRU,本质是利用了"近期性"这个历史经验, LFU(Least-Frequency-Used)则是利用了"频率"这个页面的历史经验</span></span><br><span class="line">    <span class="comment">// 本质上来说,也是一种缓存管理的策略; 缓存是什么意思呢:内存中的页是整个虚拟页的子集(有部分存储在磁盘之中)</span></span><br><span class="line">    <span class="comment">// 实际上,在os中并不会使用这种数据结构(因为还要额外维护一个双向链表)</span></span><br><span class="line">    <span class="comment">// os中会使用"闹钟算法",在PFE中维护一个"使用位"use bit</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// hash: 根据key快速找到value</span></span><br><span class="line">    <span class="comment">// 双向链表: 快速找到"LRU"的页</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用双向链表表示一个缓存(页)</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">ListNode</span> {</span><br><span class="line">        <span class="type">int</span> key, val;</span><br><span class="line">        ListNode prev;</span><br><span class="line">        ListNode next;</span><br><span class="line"></span><br><span class="line">        ListNode(<span class="type">int</span> key, <span class="type">int</span> val) {</span><br><span class="line">            <span class="built_in">this</span>.key = key; <span class="comment">// VPN:Virtual Page Number</span></span><br><span class="line">            <span class="built_in">this</span>.val = val;<span class="comment">// PPN: Physical Page Number</span></span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用哈希表管理所有的页</span></span><br><span class="line">    Map&lt;Integer, ListNode&gt; hash;</span><br><span class="line">    ListNode dummyHead;</span><br><span class="line">    ListNode dummyTail;</span><br><span class="line">    <span class="type">int</span> capacity;</span><br><span class="line"></span><br><span class="line">    <span class="type">public</span> <span class="title function_">LRUCache</span><span class="params">(<span class="type">int</span> capacity)</span> {</span><br><span class="line">        <span class="built_in">this</span>.capacity = capacity;</span><br><span class="line">        hash = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        dummyHead = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">        dummyTail = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        dummyHead.next = dummyTail;</span><br><span class="line">        dummyTail.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> {</span><br><span class="line">        <span class="comment">// 缓存未命中</span></span><br><span class="line">        <span class="keyword">if</span>(!hash.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>; <span class="comment">// swap page --&gt; 重新put</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 缓存命中</span></span><br><span class="line">        <span class="type">ListNode</span> <span class="variable">node</span> <span class="operator">=</span> hash.get(key);</span><br><span class="line">        <span class="comment">// 标记为"最常访问的"</span></span><br><span class="line">        remove(node);</span><br><span class="line">        insertInToFront(node); <span class="comment">// 标记为最常访问</span></span><br><span class="line">        <span class="keyword">return</span> node.val;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加入新的缓存</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="comment">// 已经存在</span></span><br><span class="line">        <span class="keyword">if</span>(hash.containsKey(key))</span><br><span class="line">            remove(hash.get(key));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 缓存不存在,但是内存不足,需要执行页交换策略,删除最近最少使用</span></span><br><span class="line">        <span class="keyword">if</span>(hash.size() == capacity)</span><br><span class="line">            remove(dummyTail.prev);</span><br><span class="line">        insertInToFront(<span class="keyword">new</span> <span class="title class_">ListNode</span>(key, value));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(ListNode node)</span> {</span><br><span class="line">        hash.remove(node.key);</span><br><span class="line"></span><br><span class="line">        node.prev.next = node.next;</span><br><span class="line">        node.next.prev = node.prev;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(ListNode node)</span> {</span><br><span class="line">        hash.put(node.key, node);</span><br><span class="line"></span><br><span class="line">        node.next = dummyHead.next;</span><br><span class="line">        dummyHead.next.prev = node;</span><br><span class="line"></span><br><span class="line">        dummyHead.next = node;</span><br><span class="line">        node.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Your LRUCache object will be instantiated and called as such:</span></span><br><span class="line"><span class="comment"> * LRUCache obj = new LRUCache(capacity);</span></span><br><span class="line"><span class="comment"> * int param_1 = obj.get(key);</span></span><br><span class="line"><span class="comment"> * obj.put(key,value);</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>LFU 代码,链接: <a href="https://leetcode.cn/problems/lfu-cache/">460. LFU 缓存 - 力扣（LeetCode）</a></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LFUCache</span> {</span><br><span class="line">    <span class="comment">// LFU: Frequency 局部性</span></span><br><span class="line">    <span class="comment">// 关键在于:当两个VPN的freq相同时,就退化为LRU</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 表示每个映射</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Node</span> {</span><br><span class="line">        <span class="type">int</span> key, val, freq;</span><br><span class="line">        Node prev, next;</span><br><span class="line"></span><br><span class="line">        Node(<span class="type">int</span> key, <span class="type">int</span> val, <span class="type">int</span> freq) {</span><br><span class="line">            <span class="built_in">this</span>.key = key;</span><br><span class="line">            <span class="built_in">this</span>.val = val;</span><br><span class="line">            <span class="built_in">this</span>.freq = freq;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">DoublyLinkedList</span> {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">dummyHead</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">dummyTail</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">        <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        DoublyLinkedList() {</span><br><span class="line">            dummyHead.next = dummyTail;</span><br><span class="line">            dummyTail.prev = dummyHead;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(Node node)</span> {</span><br><span class="line">            node.prev.next = node.next;</span><br><span class="line">            node.next.prev = node.prev;</span><br><span class="line">            size--;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(Node node)</span> {</span><br><span class="line">            node.next = dummyHead.next;</span><br><span class="line">            node.next.prev = node;</span><br><span class="line">            dummyHead.next = node;</span><br><span class="line">            node.prev = dummyHead;</span><br><span class="line">            size++;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isEmpty</span><span class="params">()</span> { <span class="keyword">return</span> size == <span class="number">0</span>; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    Map&lt;Integer, Node&gt; hash1; <span class="comment">// VPN-PPN</span></span><br><span class="line">    Map&lt;Integer, DoublyLinkedList&gt; hash2; <span class="comment">// 频率桶</span></span><br><span class="line">    <span class="type">int</span> capacity, minFreq;</span><br><span class="line"></span><br><span class="line">    <span class="type">public</span> <span class="title function_">LFUCache</span><span class="params">(<span class="type">int</span> capacity)</span> {</span><br><span class="line">        <span class="built_in">this</span>.capacity = capacity;</span><br><span class="line">        <span class="built_in">this</span>.hash1 = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="built_in">this</span>.hash2 = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="built_in">this</span>.minFreq = <span class="number">0</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> {</span><br><span class="line">        <span class="comment">// VPN不存在</span></span><br><span class="line">        <span class="keyword">if</span> (!hash1.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// VPN存在,缓存命中 被访问的频率++</span></span><br><span class="line">        <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">        updateNode(node);</span><br><span class="line">        <span class="keyword">return</span> node.val;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="keyword">if</span> (capacity == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果VPN已存在,更新node的频率</span></span><br><span class="line">        <span class="keyword">if</span> (hash1.containsKey(key)) {</span><br><span class="line">            <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">            node.val = value; <span class="comment">// 显式更新值</span></span><br><span class="line">            updateNode(node);</span><br><span class="line">        } <span class="keyword">else</span> {</span><br><span class="line">            <span class="comment">// VPN不存在--&gt;缓存未命中</span></span><br><span class="line">            <span class="keyword">if</span> (hash1.size() &gt;= capacity) {</span><br><span class="line">                <span class="comment">// 置换策略</span></span><br><span class="line">                <span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line">                <span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">                minFreqList.remove(toDeleteNode);</span><br><span class="line">                hash1.remove(toDeleteNode.key);</span><br><span class="line">            }</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 无需置换或已完成置换，插入新节点</span></span><br><span class="line">            <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(key, value, <span class="number">1</span>);</span><br><span class="line">            hash1.put(key, node);</span><br><span class="line">            hash2.computeIfAbsent(<span class="number">1</span>, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">            minFreq = <span class="number">1</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 提取出的公用逻辑：移动到新频率的双向链表中,然后标记为"最近使用"</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">updateNode</span><span class="params">(Node node)</span> {</span><br><span class="line">        <span class="comment">// 1.删除原频率链表对应的元素</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">curFreq</span> <span class="operator">=</span> node.freq++;</span><br><span class="line">        <span class="type">DoublyLinkedList</span> <span class="variable">curList</span> <span class="operator">=</span> hash2.get(curFreq);</span><br><span class="line">        curList.remove(node);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果当前频率是最小频率，且移除后该频率桶空了，则提升最小频率</span></span><br><span class="line">        <span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">            minFreq++;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将当前节点加到新频率的双向链表中,并将此节点放到此双向链表的头部</span></span><br><span class="line">        hash2.computeIfAbsent(node.freq, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>algorithm</tag>
+        <tag>leetcode</tag>
+        <tag>os</tag>
+        <tag>cache</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>递归入门：如何理解递归与经典题目解析</title>
+    <url>/2026/04/29/recursion-intuition/</url>
+    <content><![CDATA[<h1 id="一-如何理解递归"><a href="#一-如何理解递归" class="headerlink" title="一.如何理解递归"></a>一.如何理解递归</h1><p>递归对于初学者来说是一个非常抽象的概念,笔者在第一次学习时也是迷迷糊糊的(二叉树遍历),递归的代码看起来非常的<code>简洁,优美</code>,但是如何想出来递归的思路或者为什么能用递归这是初学者很难分析出来的</p>
+<p>笔者在学习的过程中通过刷题,也总结出自己的一些经验,总结来说就是要<code>胆大心细,宏观看待问题</code></p>
+<p>其实很多递归的问题如果从宏观的角度去看,其实特别简单,比如二叉树的后序遍历,他无非就是:</p>
+<ol>
+<li>你先给我一个根节点</li>
+<li>访问根节点的左子树</li>
+<li>访问根节点的右子树</li>
+<li>再打印当前节点的值</li>
+</ol>
+<p>对于每一个节点的操作都是相同的,如果从宏观的角度看,我们可以把一个复杂的二叉树想象成一个只有三个节点的二叉树<br><img src="/images/posts/recursion-intuition/img_01.png" alt="在这里插入图片描述"><br>把二叉树的后序遍历就当做访问这个<code>只有三个节点</code>的二叉树,按照<code>左右根</code>的顺序遍历</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">dfs(TreeNode root) {</span><br><span class="line">	<span class="keyword">if</span>(root == <span class="literal">null</span>) <span class="keyword">return</span>;</span><br><span class="line">	</span><br><span class="line">	dfs(root.left);<span class="comment">// 访问左节点</span></span><br><span class="line">	dfs(root.right);<span class="comment">// 访问右结点</span></span><br><span class="line">	println(root.val);<span class="comment">// 打印当前节点的值</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>大致总结下来递归问题的思路如下:</p>
+<ol>
+<li><code>分析:</code>根据题目分析,判断是否有<code>重复的子问题</code>,如果有,就可以利用递归解决,设计出<code>函数头</code>,从宏观的角度想,要完成这次操作,这个”接口”需要什么参数(二叉树的遍历需要root,快排需要一个数组和开始结束位置)</li>
+<li><code>设计函数体:</code>只关注某一个子问题的具体操作,比如二叉树的后序遍历的子问题就完成三步:访问左子树,访问右子树,打印当前节点</li>
+<li><code>递归出口:</code>确定好递归出口,将子问题分割到最小单元进行确定,比如二叉树的遍历当节点为空时就不需要再去执行任何操作了,直接返回即可,<code>快排</code>,分割到数组只有一个数字或者为空时(l &gt;= r)就不需要继续分治了</li>
+</ol>
+<h1 id="二-例题解析"><a href="#二-例题解析" class="headerlink" title="二.例题解析:"></a>二.例题解析:</h1><h2 id="1-汉诺塔问题"><a href="#1-汉诺塔问题" class="headerlink" title="1.汉诺塔问题"></a>1.汉诺塔问题</h2><p>链接:<a href="https://leetcode.cn/problems/hanota-lcci/description/">https://leetcode.cn/problems/hanota-lcci/description/</a></p>
+<p><strong>分析:</strong></p>
+<ol>
+<li><code>函数头</code>:给我三个柱子和盘子数</li>
+<li><code>函数体</code>:先借助c将a上的n-1个盘子移动到b,然后将a剩余的最大的盘子移动到c,再借助a,将b上的n-1个盘子移动到c</li>
+<li><code>递归出口</code>:当只有一个盘子的时候,直接移动<br><img src="/images/posts/recursion-intuition/img_02.png" alt="在这里插入图片描述"></li>
+</ol>
+<p><strong>代码:</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">hanota</span><span class="params">(List&lt;Integer&gt; A, List&lt;Integer&gt; B, List&lt;Integer&gt; C)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> A.size();</span><br><span class="line">        dfs(A,B,C,n);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">dfs</span><span class="params">(List&lt;Integer&gt; a, List&lt;Integer&gt; b, List&lt;Integer&gt; c,<span class="type">int</span> n)</span> {</span><br><span class="line">        <span class="comment">// 递归结束条件 只有一个盘子的时候直接移动</span></span><br><span class="line">        <span class="keyword">if</span>(n == <span class="number">1</span>) {</span><br><span class="line">            c.add(a.remove(a.size() - <span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 模拟:借助c,将a上的n-1个盘子移动到b上</span></span><br><span class="line">        dfs(a,c,b,n-<span class="number">1</span>);</span><br><span class="line">        <span class="comment">// 将最大的盘子移动到c上</span></span><br><span class="line">        c.add(a.remove(a.size() - <span class="number">1</span>));</span><br><span class="line">        <span class="comment">// 模拟:借助a,将b盘上的n-1个盘子移动到c上</span></span><br><span class="line">        dfs(b,a,c,n-<span class="number">1</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="2-合并两个有序链表"><a href="#2-合并两个有序链表" class="headerlink" title="2.合并两个有序链表"></a>2.合并两个有序链表</h2><p><strong>链接:</strong> <a href="https://leetcode.cn/problems/merge-two-sorted-lists/">https://leetcode.cn/problems/merge-two-sorted-lists/</a></p>
+<p><strong>分析:</strong></p>
+<ol>
+<li><code>函数头</code>:两个链表的头结点</li>
+<li><code>函数体</code>:判断较小值,合并之后的所有节点,并连接返回的节点</li>
+<li><code>递归出口</code>:只有一个节点或者为空<br><img src="/images/posts/recursion-intuition/img_03.png" alt="在这里插入图片描述"></li>
+</ol>
+<p><strong>代码:</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * public class ListNode {</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode next;</span></span><br><span class="line"><span class="comment"> *     ListNode() {}</span></span><br><span class="line"><span class="comment"> *     ListNode(int val) { this.val = val; }</span></span><br><span class="line"><span class="comment"> *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }</span></span><br><span class="line"><span class="comment"> * }</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">ListNode</span> <span class="title function_">mergeTwoLists</span><span class="params">(ListNode list1, ListNode list2)</span> {</span><br><span class="line">        <span class="comment">// 递归</span></span><br><span class="line">        <span class="keyword">if</span>(list1 == <span class="literal">null</span>) <span class="keyword">return</span> list2;</span><br><span class="line">        <span class="keyword">if</span>(list2 == <span class="literal">null</span>) <span class="keyword">return</span> list1;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将后面的链表给我合并好,并且返回合并好的节点</span></span><br><span class="line">        <span class="keyword">if</span>(list1.val &lt; list2.val) {</span><br><span class="line">            list1.next = mergeTwoLists(list1.next,list2);</span><br><span class="line">            <span class="keyword">return</span> list1;</span><br><span class="line">        }<span class="keyword">else</span> {</span><br><span class="line">            list2.next = mergeTwoLists(list2.next,list1);</span><br><span class="line">            <span class="keyword">return</span> list2;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="3-反转链表"><a href="#3-反转链表" class="headerlink" title="3.反转链表"></a>3.反转链表</h2><p><strong>链接:</strong> <a href="https://leetcode.cn/problems/reverse-linked-list/submissions/514361305/">https://leetcode.cn/problems/reverse-linked-list/submissions/514361305/</a></p>
+<p><strong>分析:</strong></p>
+<ol>
+<li><code>函数头</code>:给我头结点,逆序整个链表</li>
+<li><code>函数体</code>:逆序之后的所有节点,并且返回逆序之后的头结点,然后和当前节点拼接</li>
+<li><code>递归出口</code>:只有一个节点或者为空<br><img src="/images/posts/recursion-intuition/img_04.png" alt="在这里插入图片描述"></li>
+</ol>
+<p><strong>代码:</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * public class ListNode {</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode next;</span></span><br><span class="line"><span class="comment"> *     ListNode() {}</span></span><br><span class="line"><span class="comment"> *     ListNode(int val) { this.val = val; }</span></span><br><span class="line"><span class="comment"> *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }</span></span><br><span class="line"><span class="comment"> * }</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">ListNode</span> <span class="title function_">reverseList</span><span class="params">(ListNode head)</span> {</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 递归出口</span></span><br><span class="line">        <span class="keyword">if</span>(head == <span class="literal">null</span> || head.next == <span class="literal">null</span>) <span class="keyword">return</span> head;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 函数体  你给我逆置后面的所有链表并且返回新的头结点</span></span><br><span class="line">        <span class="type">ListNode</span> <span class="variable">newhead</span> <span class="operator">=</span> reverseList(head.next);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 反转</span></span><br><span class="line">        head.next.next = head;</span><br><span class="line">        head.next = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> newhead;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="4-两两交换链表中的节点"><a href="#4-两两交换链表中的节点" class="headerlink" title="4.两两交换链表中的节点"></a>4.两两交换链表中的节点</h2><p><strong>链接:</strong> <a href="https://leetcode.cn/problems/swap-nodes-in-pairs/">https://leetcode.cn/problems/swap-nodes-in-pairs/</a></p>
+<p><strong>分析:</strong></p>
+<ol>
+<li><code>函数头</code>:重复子问题就是<code>给我一个节点,两两交换后面的链表的所有节点</code></li>
+<li><code>函数体</code>:关注每一个子问题要干什么,得到交换后的头节点,然后链接这个头结点</li>
+<li><code>递归出口</code>:空或者只有一个节点<br><img src="/images/posts/recursion-intuition/img_05.png" alt="在这里插入图片描述"></li>
+</ol>
+<p><strong>代码:</strong></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * public class ListNode {</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode next;</span></span><br><span class="line"><span class="comment"> *     ListNode() {}</span></span><br><span class="line"><span class="comment"> *     ListNode(int val) { this.val = val; }</span></span><br><span class="line"><span class="comment"> *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }</span></span><br><span class="line"><span class="comment"> * }</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">ListNode</span> <span class="title function_">swapPairs</span><span class="params">(ListNode head)</span> {</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(head == <span class="literal">null</span> || head.next == <span class="literal">null</span>) <span class="keyword">return</span> head;</span><br><span class="line">        <span class="type">ListNode</span> <span class="variable">ret</span> <span class="operator">=</span> head.next;<span class="comment">// 最终要返回的节点应该是head.next(是头结点的下一个节点)</span></span><br><span class="line"></span><br><span class="line">        <span class="type">ListNode</span> <span class="variable">newHead</span> <span class="operator">=</span> swapPairs(head.next.next);</span><br><span class="line"></span><br><span class="line">        head.next.next = head;</span><br><span class="line">        head.next = newHead;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="5-Pow（x-n）-快速幂"><a href="#5-Pow（x-n）-快速幂" class="headerlink" title="5.Pow（x, n）- 快速幂"></a>5.Pow（x, n）- 快速幂</h2><p><strong>链接:</strong> <a href="https://leetcode.cn/problems/powx-n/submissions/514390268/">https://leetcode.cn/problems/powx-n/submissions/514390268/</a></p>
+<p><strong>分析:</strong></p>
+<ol>
+<li><code>函数头</code>:结合快速幂的思想,递归函数就是求<code>x ^ n</code>的值</li>
+<li><code>函数体</code>:每一个子问题的操作,得到 <code>x ^ n / 2</code>的值,再判断返回的结果的值</li>
+<li><code>递归出口</code>:n == 0</li>
+</ol>
+<p><img src="/images/posts/recursion-intuition/img_06.jpeg" alt="在这里插入图片描述"><br><strong>代码</strong>:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">myPow</span><span class="params">(<span class="type">double</span> x, <span class="type">int</span> n)</span> {</span><br><span class="line">        <span class="comment">// 注意n可能为负数</span></span><br><span class="line">        <span class="keyword">return</span> n &lt; <span class="number">0</span> ? <span class="number">1.0</span> / pow(x,-n) : pow(x,n);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">pow</span><span class="params">(<span class="type">double</span> x,<span class="type">int</span> n)</span> {</span><br><span class="line">        <span class="keyword">if</span>(n == <span class="number">0</span>) <span class="keyword">return</span> <span class="number">1.0</span>;</span><br><span class="line">        <span class="type">double</span> <span class="variable">tmp</span> <span class="operator">=</span> pow(x,n/<span class="number">2</span>);</span><br><span class="line">        <span class="keyword">return</span> n % <span class="number">2</span> == <span class="number">0</span> ? tmp * tmp : tmp * tmp * x;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当前这个数的结果只有在遍历完当前数字的<code>n / 2</code>之后才能获得,所以需要先递归<code>x,n / 2</code></p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>algorithm</tag>
+        <tag>leetcode</tag>
+        <tag>recursion</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-5-28</title>
+    <url>//reading/2026-05-28/</url>
+    <content><![CDATA[<blockquote>
+<p>“夫良知之于节目时变，犹规矩尺度之于方圆长短也。节目时变之不可预定，犹方圆长短之不可胜穷也。故规矩诚立，则不可欺以方圆，而天下之方具不可胜用矣。尺度诚陈，则不可欺以长短，而天下长短不可胜用矣。良知诚致，则不可欺以节目时变，而天下之节目时变不可胜应矣。毫厘千里之谬，不于吾心良知一念之微而察之，亦将何所用其学乎。是不以规矩而欲定天下之方圆，不以尺度而欲尽天下之长短，吾见其乖张谬戾，日劳而无成也已。（《答顾东桥书》）”</p>
+</blockquote>
+<p>个人思考:<br>良知是根,知识是叶; 致良知,就是寻找自己的锚点;这也让我想起&lt;&lt;原子习惯&gt;&gt;这本书中提到的”身份认同”,我要减肥 10 斤–&gt;我是一个健康生活的人,改变自己的理念,就是改变自己的良知;</p>
+<p>“节目时变之不可预订,犹如方圆长短之不可胜穷也”,现实生活的复杂度是不可被穷尽且无法被全部预测的,我们并不能找到一个”万能宝典”去解决一切事情,但唯一确定的是 <code>你内心的良知</code>,也可以说是 <code>原则</code>;这个良知一开始不可能是完美的,是需要去 <code>事上磨炼</code> 的;</p>
+]]></content>
+      <categories>
+        <category>阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-5-29</title>
+    <url>//reading/2026-05-29/</url>
+    <content><![CDATA[<p><img src="https://cdn.jsdelivr.net/gh/mylvzi/obsidian-image-hosting@main/obsidian/%7Byear%7D/%7Bmonth%7D/20260529232414352.png"></p>
+<blockquote>
+<p>核心观点一: 大学只是一个”贩卖知识”的百货公司</p>
+</blockquote>
+<p>教育的本质不是”我交学费,你给我文凭和知识库”,而是应该培养人格和认知论; 现在的大学,老师念 PPt,学生接受 or 不接受,和卖东西的百货公司有什么差别?只是惊奇的是,一百多年钱竟然就有类似的问题,然后直到 AI 时代都没有解决</p>
+<blockquote>
+<p>核心观点二: 绝大多数学生都是”空腹高心”,高谈井田封建,面对生活的具体问题却没有具体方案</p>
+</blockquote>
+<p>面对”宏大叙事,理想”可以侃侃而谈,高谈阔论,但是连一个具体的生活问题都无法解决,谈论着国家大事,实际上连如何解决空虚,如何和室友相处都无法解决,甚至连个冒泡排序都写不出来</p>
+<blockquote>
+<p>解决方式: 事上磨练!</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-1</title>
+    <url>//reading/2026-06-01/</url>
+    <content><![CDATA[<blockquote>
+<p>“人须有为己之心方能克己，能克己方能成己。”</p>
+</blockquote>
+<p>为己是起点,克己是过程,成己是终点; 为己就是立志,立志之后,克己就是自然而然的,就像”如好好色,如恶恶臭”一样,做的都是本能的功夫,长久下来就能成己.</p>
+<p>“为己”不是自私自利,而是”认真对待自己的声明”,”为己”出自于孔子:</p>
+<ul>
+<li>古之学者为己,今之学者为人<br>强调的是 <code>把增加修养和培育品格当做是自己的事情</code>,而不是为了私欲;比如读书这件事,你就是为了装逼,还是为了提升自己的修养,增强自己的见解?你出去旅游是为了打卡拍照炫耀,还是为了放松自己的心灵?阳明认为所有人都有 <code>良知</code>,只不过是被私欲所蒙蔽.</li>
+</ul>
+<p>如果你努力学习,保持自律只是为了<strong>做给别人看</strong>(被赞美,炫耀,获得点赞,满足他人的期待),这只是 <code>为人</code>,而不是 <code>为己</code>.只有你内心真正认为 <code>我要成为一个更好的人,这是我自己的事</code>,你才会从内心产生源源不断的 <code>自驱力</code>,在这个过程中你会不断克服私欲(克己)</p>
+<p>克己不是压抑人性,而是克制欲望,克制惯性;惯性最可怕的地方是 <code>你可能根本察觉不到他的存在</code>,比如我每次锻炼完都会直接打开抖音开始刷视频放松,这个过程根本就没有 <code>省察</code> 的过程,但实际上刷视频根本不是放松,会让我很累,一定要警惕这些时刻.</p>
+<p>我减肥不是为了让别人觉得我自律,而是我想做一个身体健康的人,我想维持自己的精力,我想时刻做一个高精力的人,我想让自己时刻保持清醒.</p>
+<p>再比如我在小号的朋友圈发一些东西,本质还是为了吸引一些人的关注,很多东西只是情绪化的表达,没有形成自己的见解</p>
+]]></content>
+      <categories>
+        <category>阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-9</title>
+    <url>//reading/2026-06-09/</url>
+    <content><![CDATA[<blockquote>
+<p>“优绩主义的内在逻辑必然导致机会的不平等”</p>
+</blockquote>
+<p>优绩主义宣称他们的规则是平等的,即”只要你努力就会获得成功”,这种看似公平的评价体系其实是造成 <code>更深层,更不可逆不平等的根源</code></p>
+<p>最隐蔽的毒性在于:他把<strong>结构性的特权</strong>伪装成个人的才华.<br>这就导致了发展的不平等:赢家认为自己赢得理所当然,输家认为自己输的心服口服,羞耻心和无力感会让他们放弃努力; 聪明和努力早就不是一种天赋,而是一种<strong>高额投资的结果</strong>,比如 B 站上的那个可爸可妈,双清华父母,他们对下一代的培养真的颠覆了我的认知,从小就注重培养逻辑(买孩童专用的电子书籍),注重培养注意力(拼图),注重培养国际视野(送去私立的,国际幼儿园);</p>
+<p>为什么精英会这么注重培养孩子的这些特质呢,因为现在是 <code>知识经济时代</code>,最核心的生产资料是 <code>人本身</code>,人的专注力,抽象能力,深度思考能力才是这个时代最大的核心竞争力;</p>
+]]></content>
+      <categories>
+        <category>阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-10</title>
+    <url>//reading/2026-06-10/</url>
+    <content><![CDATA[<blockquote>
+<p>“在一个科技发达的时代里，造成精神毁灭的敌人更可能是一个满面笑容的人，而不是那种一眼看上去就让人心生怀疑和仇恨的人。”-娱乐至死</p>
+</blockquote>
+<p>跟优绩主义类似,表面看起来是无害的,甚至是充满正义感的,实际上是一种深层的恶意,一种极其强大的 pua 方式</p>
+<p>波兹曼在这一章提到了两种控制思想的方式:</p>
+<ul>
+<li>类似于&lt;&lt;1984&gt;&gt;这种恐惧式控制,文字狱</li>
+<li>类似于&lt;&lt;美丽新世界&gt;&gt;这种娱乐式控制,奶头乐</li>
+</ul>
+<p>波兹曼认为,第一种恐惧式的控制比较容易被识别,也比较容易被推翻,但是第二种方式,难以识别,且民众会无意识的陷入进去,毕竟”追求快乐”也是有罪的吗?他认为第二种方式的控制即将到来,现在看来他的预言成真了,而且”手段”更加高明.</p>
+<p>短视频比电视更懂人性,更懂行为心理学,infinite scroll 的内容流就像老虎机一样,不断刺激着你;APP 平台的类似于”猜你喜欢”这种 feed 流不断侵蚀你的注意力</p>
+]]></content>
+      <categories>
+        <category>阅读笔记</category>
+      </categories>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-12</title>
+    <url>//reading/2026-06-12/</url>
+    <content><![CDATA[<p>&lt;&lt;如何阅读一本书&gt;&gt;</p>
+<h1 id="第一章-阅读的活力与艺术"><a href="#第一章-阅读的活力与艺术" class="headerlink" title="第一章 阅读的活力与艺术"></a>第一章 阅读的活力与艺术</h1><ul>
+<li>观点一: 本书的目的是为了 <code>增加你的阅读理解力</code>,就像接球手练习接球一样</li>
+</ul>
+<p>作者还提到,阅读是一种手段,是可以训练的,就像接球手需要练习各种场景的接球方法一样,对于不同类型的书籍,也有不同的阅读技巧</p>
+<ul>
+<li>观点二: 获取咨询并不会增加你的理解力,过度的资讯会破坏你的理解力</li>
+</ul>
+<p>过度的资讯会让你的脑袋”吃撑”,然后炸开,但这不是”破镜重圆”,因为”破镜重圆”需要的是 <code>结构性的阻力</code>,过度的资讯没有阻力,就像你吃薯片吃到撑,并不会让你的身体变好,反而会影响身体健康</p>
+<ul>
+<li>观点三: 阅读分为两种,获取资讯和增强理解力</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-16</title>
+    <url>//reading/2026-06-16/</url>
+    <content><![CDATA[<blockquote>
+<p>&lt;&lt;精英的陷阱&gt;&gt;-第九章-优绩主义的神话</p>
+</blockquote>
+<p>讲述了优绩主义的来源,出自英国社会学家迈克尔.杨的&lt;&lt;优绩的神话&gt;&gt;,”优绩”即<strong>Meritocracy</strong>,拉丁词根是<strong>通过努力获得</strong></p>
+<p>杨认为:</p>
+<blockquote>
+<p>优绩主义通过对天赋越来越早的发现和分配,越来越早的确定每个人的职责,聪明人干聪明的事,来构建一个看似和谐稳定,人尽其用的社会.</p>
+</blockquote>
+<p>他认为天赋是天生的,甚至精英也是天生的,忽视了优绩主义下的不平等所造成的社会动力,即越来越持久的资源投入和经济付出(比如从小就上国际幼儿园,美国私立学校等等)</p>
+<p>杨还认为:</p>
+<blockquote>
+<p>优绩主义会导致”无意义的暴动”</p>
+</blockquote>
+<p>不平等不会造成革命,丧失尊严才会.<br>放在贵族时代,普通人的失败可以归咎于出身的不平等,可以用制度的缺点来安慰自己,但在优绩主义制度下,他撕开了最后一层遮羞布,你的失败只能怪你自己不努力,制度已经尽可能维护公平了,普通人连最后一个情绪的输出口都丧失了</p>
+<p>中国社会的革命其实就是 <code>躺平</code>,年轻人是 <code>向内革命</code>,既然我的努力没有意义,我的失败是由于我不努力,不能怪社会,那我就躺着呗,这种无意义的躺着就是一种无意义的暴动</p>
+]]></content>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-17</title>
+    <url>//reading/2026-06-17/</url>
+    <content><![CDATA[<blockquote>
+<p>&lt;&lt;学会提问&gt;&gt;</p>
+</blockquote>
+<p>《学会提问》中对价值观的定义，可以归纳为：<strong>人们认为重要的抽象观念，会潜移默化地影响我们的决定、行为与体验。</strong></p>
+<p>在论证中，最常见也最具误导性的手法，就是将价值观假设伪装成客观事实。比如 “你一定要考公” 这句话，说话者从未挑明的假设是 —— 稳定大于成长。但这只是他的价值观排序，而非放之四海皆准的真理。</p>
+<p>结合自身和之前阅读的内容，我发现一个有趣的现象：我从小到大所交的好友，往往都与我价值观相近。比如我最好的朋友和我一样，觉得独处比出去玩更能恢复精力。这让我开始反问自己：这是否意味着我陷入了一种<strong>弱势批判思维</strong>的困境？</p>
+<p>思考之后，我觉得并非如此。</p>
+<p>弱势批判思维的关键，不在于行为本身，而在于<strong>你内心经历了怎样的思考过程</strong>。所谓弱势批判，是指只在观点的海洋中打捞那些能够捍卫自己已有结论的材料，而非真正去检验它 —— 本质上是一种操纵性的自我论证。</p>
+<p>拿 “不去 KTV” 这件事来说，它本身并不能说明一个人是弱势还是强势批判者。区别在于内心：弱势批判者会说 “KTV 就是吵，没什么好说的”；而我真正想的是，我理解并尊重喜欢去 KTV 的人 —— 他们在那里放松、恢复能量，这完全合理。只不过，我和他们获取能量的方式不同而已。</p>
+<p>这其实就经历了一个强势批判思维的过程：我审视了对方的理由，也检验了自己的理由，最终不是因为 “大家都不去” 而留下，而是因为真正想清楚了 “我为什么不去”。</p>
+<p><strong>行为可以相同，但思考的质量决定了你是在选择，还是在逃避。</strong></p>
+]]></content>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2026-6-20</title>
+    <url>//reading/2026-06-20/</url>
+    <content><![CDATA[<p>&lt;&lt;学会提问&gt;&gt;</p>
+<p>价值观:一个人比较重视的抽象概念,会潜移默化的影响一个人的行为,决策,体验<br>价值观假设:价值偏好</p>
+<p><strong>如何寻找价值观假设</strong><br>前提:寻找价值观看的不是 <code>价值观本身</code>,而是 <code>对一个价值观的相对认可度</code>.因为大部分人的价值观其实是比较类似的,有所区别的是对不同价值观的认可度</p>
+<ol>
+<li><p>根据作者的背景寻找他的价值观假设:屁股决定脑袋,去找他真正关注的利益是什么;<br> 比如学生的关注的利益和学校领导关注的利益不同,学生关注的是自己的利益(为什么我没有空调,为什么不注重对学生生活质量的提升),校领导关注的利益是资金,学校名声,当没有空调这件实时严重影响了学校利益时,空调就不得不安了;<br> 同时还要注意,相同团体的人的价值观也并不是完全相同的,不能因为他属于这个团体,就默认他有对应的价值观</p>
+<p> <code>注意</code>:利益是价值观的体现,但利益和价值观并不是一个东西;空调的例子反映的是学生和校领导的价值观冲突,学生是 <code>个人舒适 &gt; 集体资源效率</code>,校领导是反过来</p>
+<p> 专家认为 <code>年轻人应该延迟退休</code>-专家是既得利益者,只会向着政府说话(只看到了利益)-社会养老秩序的平稳运行 &gt; 个人提前退休的权利</p>
+</li>
+<li><p>找作者论证的理由:多问 <code>为什么作者这么重视这个结果,重视这个结果的原因是什么</code><br> “我不想去毕业典礼,因为太浪费我的时间了”-为什么重视自己的时间?-不会为个人成长带来任何好处,低密度的摩擦浪费时间-重视个人</p>
+</li>
+<li><p>多反串:如果使用对立的结论,他们主要关注的是什么;<br> “不应该使用猴子作为实验对象”-“应该使用猴子作为实验对象”-科研价值大于动物保护</p>
+</li>
+<li><p>价值观假设往往是 <code>成对出现</code> 的,往往存在一个 <code>A&gt;B</code> 的假设<br> 这也能引出我们常犯的一个错误: <code>以为找到一个价值观就可以了</code>,比如:不应该向未成年人推送短视频<br> 你以为你找到了价值观:作者重视未成年身心健康,但忽视了 <code>价值观假设是成对出现的</code>,隐藏的价值观排序是 <code>未成年人身心健康 &gt; 信息流通自由</code></p>
+</li>
+</ol>
+<p><strong>为什么要寻找价值观假设</strong></p>
+<ol>
+<li>能帮我们更好的理解论证过程和论证结果</li>
+<li>帮助我们判断论证是否可以被接受:因为有的价值观假设往往是 <code>隐蔽</code> 的,甚至连作者本人也无法意识到</li>
+</ol>
+<p><strong>一个锻炼的方法</strong><br>每次看到一个评论,问自己三句话:</p>
+<ol>
+<li>作者最想实现的是什么,最想保护什么(找 A 价值观)</li>
+<li>为了实现 A,他可以忽视掉什么(找 B 价值观)</li>
+<li>我的价值观排序是 <code>A&gt;B</code> 还是 <code>B&gt;A</code></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>阅读笔记</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前缀和算法系列-概念讲解-应用场景-大量例题讲解</title>
+    <url>/2026/04/28/2026-4-28-preFixSum/</url>
+    <content><![CDATA[<blockquote>
+<p><strong>大家好，我是小林绿子</strong>，今天带来<code>前缀和算法系列|概念讲解|应用场景|大量例题讲解</code><br><img src="/images/posts/prefix_sum/img_01.jpeg" alt="在这里插入图片描述"></p>
+</blockquote>
+<h1 id="一-模版解析"><a href="#一-模版解析" class="headerlink" title="一.模版解析"></a>一.模版解析</h1><h2 id="1-一维前缀和"><a href="#1-一维前缀和" class="headerlink" title="1.一维前缀和"></a>1.一维前缀和</h2><p>一维前缀和就是一个简单的dp问题</p>
+<ul>
+<li>状态表示:<code>dp[i]:以i位置为结尾的所有元素的和</code></li>
+<li>状态转移方程:<code>dp[i] = dp[i - 1] + arr[i]</code></li>
+</ul>
+<p>链接:<a href="https://www.nowcoder.com/practice/acead2f4c28c401889915da98ecdc6bf?tpId=230&amp;tqId=2021480&amp;ru=/exam/oj&amp;qru=/ta/dynamic-programming/question-ranking&amp;sourceUrl=/exam/oj?page=1&amp;tab=%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587&amp;topicId=196">一维前缀和(模版题)</a><br>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意类名必须为 Main, 不要有任何 package xxx 信息</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">in</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="comment">// 1.输入数据</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> in.nextInt(), q = in.nextInt();</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">arr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i&lt;= n; i++) arr[i] = in.nextInt();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.使用dp表处理数据</span></span><br><span class="line">        <span class="type">long</span>[] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">long</span>[n + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i&lt;= n; i++) dp[i] = dp[i - <span class="number">1</span>] + arr[i];</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3.打印数据</span></span><br><span class="line">        <span class="keyword">while</span>(q &gt; <span class="number">0</span>) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">l</span> <span class="operator">=</span> in.nextInt(), r = in.nextInt();</span><br><span class="line">            System.out.println(dp[r] - dp[l - <span class="number">1</span>]);</span><br><span class="line">            q--;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="2-二维前缀和"><a href="#2-二维前缀和" class="headerlink" title="2.二维前缀和"></a>2.二维前缀和</h2><p>同理,二位前缀和是一个简单的二维dp问题,难点在于dp表的状态转移方程和如何使用,需要进行推导</p>
+<p><img src="/images/posts/prefix_sum/img_02.png" alt="在这里插入图片描述"><br>链接:<a href="https://www.nowcoder.com/practice/99eb8040d116414ea3296467ce81cbbc?tpId=230&amp;tqId=2023819&amp;ru=/exam/oj&amp;qru=/ta/dynamic-programming/question-ranking&amp;sourceUrl=/exam/oj?page=1&amp;tab=%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587&amp;topicId=196">二维前缀和</a></p>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意类名必须为 Main, 不要有任何 package xxx 信息</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">in</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> in.nextInt(), m = in.nextInt(), q = in.nextInt();</span><br><span class="line">        <span class="type">int</span>[][] <span class="variable">arr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>][m + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++){</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">1</span>; j &lt;= m; j++) {</span><br><span class="line">                arr[i][j] = in.nextInt();</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 预处理前缀和数组</span></span><br><span class="line">        <span class="type">long</span>[][] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">long</span>[n + <span class="number">1</span>][m + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++){</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">1</span>; j &lt;= m; j++) {</span><br><span class="line">                dp[i][j] = dp[i - <span class="number">1</span>][j] + dp[i][j - <span class="number">1</span>] + arr[i][j] - dp[i - <span class="number">1</span>][j - <span class="number">1</span>];</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用前缀和数组</span></span><br><span class="line">        <span class="keyword">while</span>(q &gt; <span class="number">0</span>) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">x1</span> <span class="operator">=</span> in.nextInt(), y1 = in.nextInt(), x2 = in.nextInt(), y2 = in.nextInt();</span><br><span class="line">            <span class="type">long</span> <span class="variable">ret</span> <span class="operator">=</span> dp[x2][y2] - dp[x1 - <span class="number">1</span>][y2] - dp[x2][y1 - <span class="number">1</span>] + dp[x1 - <span class="number">1</span>][y1 - <span class="number">1</span>];</span><br><span class="line">            System.out.println(ret);</span><br><span class="line">            q--;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="3-使用条件"><a href="#3-使用条件" class="headerlink" title="3.使用条件"></a>3.使用条件</h2><p>前缀和算法是一种高效解决数组区间求和问题的技巧。它通过预处理数组，构建一个前缀和数组，<code>使得任何区间的和可以在常数时间内计算出来</code>。以下是一些你必须要掌握的核心概念和步骤：</p>
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><ol>
+<li><p><strong>前缀和数组定义</strong>：</p>
+<ul>
+<li>前缀和数组 <code>prefix_sum</code> 是一个新数组，其中 <code>prefix_sum[i]</code> 表示原数组从第一个元素到第 <code>i</code> 个元素的和。</li>
+<li>数学表示：<code>prefix_sum[i] = arr[0] + arr[1] + ... + arr[i-1]</code>。</li>
+</ul>
+</li>
+<li><p><strong>构建前缀和数组</strong>：</p>
+<ul>
+<li>前缀和数组的构建可以在<code>一次线性扫描</code>中完成。</li>
+<li>伪代码示例：<figure class="highlight python"><table><tbody><tr><td class="code"><pre><span class="line">prefix_sum[<span class="number">0</span>] = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, n+<span class="number">1</span>):</span><br><span class="line">    prefix_sum[i] = prefix_sum[i-<span class="number">1</span>] + arr[i-<span class="number">1</span>]</span><br></pre></td></tr></tbody></table></figure></li>
+</ul>
+</li>
+<li><p><strong>区间和的计算</strong>：</p>
+<ul>
+<li>一旦构建了前缀和数组，任何区间 <code>[i, j]</code> 的和可以通过以下公式计算：<ul>
+<li><code>sum[i:j] = prefix_sum[j+1] - prefix_sum[i]</code></li>
+</ul>
+</li>
+<li>这个计算过程是常数时间的 <code>O(1)</code>。这是前缀和算法快速的核心</li>
+</ul>
+</li>
+</ol>
+<h3 id="必须掌握的步骤"><a href="#必须掌握的步骤" class="headerlink" title="必须掌握的步骤"></a>必须掌握的步骤</h3><ol>
+<li><p><strong>理解并构建前缀和数组</strong>：</p>
+<ul>
+<li>学会如何从原数组构建前缀和数组，包括处理边界情况（例如数组为空）。</li>
+</ul>
+</li>
+<li><p><strong>使用前缀和数组进行区间求和</strong>：</p>
+<ul>
+<li>熟练掌握如何通过前缀和数组高效计算任意区间的和。</li>
+</ul>
+</li>
+<li><p><strong>优化特定问题</strong>：</p>
+<ul>
+<li>掌握前缀和算法在解决特定问题时的应用，例如：<ul>
+<li>求数组中连续子数组的最大和。</li>
+<li>求给定和的子数组（例如前缀和用于滑动窗口）。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="二-题目讲解"><a href="#二-题目讲解" class="headerlink" title="二.题目讲解"></a>二.题目讲解</h1><p><strong>01.寻找数组的中间下标</strong></p>
+<p>链接:<a href="https://leetcode.cn/problems/find-pivot-index/description/">https://leetcode.cn/problems/find-pivot-index/description/</a></p>
+<p><strong>思路:</strong></p>
+<p><strong>1.暴力解法</strong></p>
+<p>暴力解法很好想,就是每遍历到一个数,就去求他的rsum和lsum</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">pivotIndex</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">    <span class="comment">// 1.暴力解法</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; nums.length; i++) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">lsum</span> <span class="operator">=</span> <span class="number">0</span>, rsum = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 左边</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; i; j++) lsum += nums[j];</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 右边</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> i+<span class="number">1</span>; k &lt; nums.length; k++) rsum += nums[k];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(lsum == rsum) <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    }</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>2.前缀和算法</strong><br>上述暴力解法最大的一个问题在于<code>重复计算</code>,<br><img src="/images/posts/prefix_sum/img_03.png" alt="在这里插入图片描述"><br>比如上图中,如果遍历到下标为3的数字6时,暴力解法需要先求lsum,即从下标为0的位置一直计算到6的前一个位置,但是实际上在求6的lsum时,下标0-1即(1,7)这两个数字的和在遍历到下标为2的数字3时已经求解过了,这里就发生了重复计算,</p>
+<p>6的lsum可以直接使用(1,7)两个数字的和即3的lsum,再加上3本身就是6 的lsum</p>
+<p>同理,6的rsum就是数字5的rsum再加上数字5本身</p>
+<p>在这个过程中每遍历到一个数字就要<code>保存前缀和和后缀和</code>,可以通过创建出两个数组进行表示,设为f[]和g[]</p>
+<p>这里面也有一个小的模版(思路+模版能强化我们的记忆):</p>
+<ol>
+<li>状态表示  dp[i]表示什么意义</li>
+<li>状态转移方程  dp[i]如何求解</li>
+</ol>
+<ul>
+<li><code>f[i]</code>表示 i 下标的数字的前缀和,<code>f[i] = f[i - 1] + nums[i - 1]</code></li>
+<li><code>g[i]</code>表示 i 下标的数字的后缀和,<code>g[i] = g[i + 1] + nums[i + 1]</code></li>
+</ul>
+<ol start="3">
+<li>处理细节问题<br>如果是 <code>i == 0,f[0] = f[-1] + nums[-1]</code>,发生越界,实际上题目中已经告诉我们,下标为0的数字的前缀和为0,所以将f[0]设置为0,同理将g[n - 1]也设置为0</li>
+</ol>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">pivotIndex</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1.设置两个数组</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length;</span><br><span class="line">    <span class="type">int</span>[] <span class="variable">f</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">    <span class="type">int</span>[] <span class="variable">g</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 2.填数字</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; n; i++) f[i] = f[i - <span class="number">1</span>] + nums[i - <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> n - <span class="number">2</span>; i &gt;= <span class="number">0</span>; i--) g[i] = g[i + <span class="number">1</span>] + nums[i + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4.遍历数组</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">        <span class="keyword">if</span>(f[i] == g[i]) <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><code>空间优化</code>:本题比较简单,可以使用两个变量来维护左右和,代码如下</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">pivotIndex</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">lSum</span> <span class="operator">=</span> <span class="number">0</span>, rSum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> n : nums) rSum += n;</span><br><span class="line">        rSum -= nums[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">if</span>(rSum == lSum) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; nums.length; i++) {</span><br><span class="line">            lSum += nums[i - <span class="number">1</span>];</span><br><span class="line">            rSum -= nums[i];</span><br><span class="line">            <span class="keyword">if</span>(lSum == rSum) <span class="keyword">return</span> i;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>02.除自身以外数组的乘积</strong><br>链接:<a href="https://leetcode.cn/problems/product-of-array-except-self/description/">https://leetcode.cn/problems/product-of-array-except-self/description/</a><br>本题和上题类似,暴力解法不做介绍,只介绍前缀和的思想</p>
+<ul>
+<li>尽管这里面是乘积,不是和,但是思路一样,ans[i] 的结果就是i位置的左边所有数字的乘积 * 右边所有数字的乘积,也就是在遍历数组的过程中保存当前位置左边所有数字的乘积和右边所有数字的乘积</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span>[] <span class="title function_">productExceptSelf</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length;</span><br><span class="line">    <span class="type">int</span>[] <span class="variable">ans</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">    <span class="type">int</span>[] <span class="variable">f</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line">    <span class="type">int</span>[] <span class="variable">g</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理细节问题</span></span><br><span class="line">    f[<span class="number">0</span>] = <span class="number">1</span>;g[n - <span class="number">1</span>] = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; n; i++) {</span><br><span class="line">        f[i] = f[i - <span class="number">1</span>] * nums[i - <span class="number">1</span>];</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> n - <span class="number">2</span>; i &gt;= <span class="number">0</span>; i--) {</span><br><span class="line">        g[i] = g[i + <span class="number">1</span>] * nums[i + <span class="number">1</span>];</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i&lt; n; i++) {</span><br><span class="line">        ans[i] = f[i] * g[i];</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>注意这里初始化dp表时应该初始化为1,初始化为0后续结果都是0</li>
+</ul>
+<p>空间优化版本:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span>[] <span class="title function_">productExceptSelf</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length;</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n]; <span class="comment">// 等价于lProduct</span></span><br><span class="line">        ret[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> <span class="number">1</span>; <span class="comment">// 等价于rProduct</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 存储左侧乘积</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; n; i++) ret[i] = ret[i - <span class="number">1</span>] * nums[i - <span class="number">1</span>];</span><br><span class="line">        <span class="comment">// 存储右侧乘积</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> n - <span class="number">2</span>; i &gt;= <span class="number">0</span>; i--) {</span><br><span class="line">            tmp *= nums[i + <span class="number">1</span>];</span><br><span class="line">            ret[i] *= tmp;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<p><strong>03.和为k的子数组</strong><br>链接:<a href="https://leetcode.cn/problems/subarray-sum-equals-k/description/">https://leetcode.cn/problems/subarray-sum-equals-k/description/</a><br><strong>思路:</strong><br><strong>1.暴力解法</strong><br>暴力解法很容易想到,从下标为0的位置开始,一直加和到最后一个数字,统计在这个过程中出现的和为k的子数组的个数</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">subarraySum</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> k)</span> {</span><br><span class="line">    <span class="comment">// 1.暴力解法</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">cnt</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; nums.length; i++) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i; j &lt; nums.length; j++) {</span><br><span class="line">            sum += nums[j];</span><br><span class="line">            <span class="keyword">if</span>(sum == k) cnt++;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> cnt;</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>2.前缀和算法</strong><br>同样的,本题中 也出现了<code>重复计算</code>的问题,我们的优化点就在这里,比如在遍历到下标为1的数字时,要从当前位置开始,一直加和到最后一个数字,但实际上这个区间内的和已经在遍历下标为0的数字时计算过了,能否<code>一次遍历就得到结果呢</code><br>为了解决这个问题,我们可以创建出一个<code>存储计算过程中结果的数组</code>,每遍历到一个数字,就保存当前数字的和,那如何和本题 建立联系呢?下面的转化过程是重点</p>
+<ul>
+<li><code>f[i]表示从0到i之间所有数字的和</code>,假设存在两个下标 i 和 j(i &lt; j) ,如果<code>f[j] - f[i] = k</code>,那么就证明nums数组中,<code>i + 1到 j </code>之间的所有数字和为k,由于f[i] = f[j] - k,此时就转换为<code>统计从0开始一直到 i 位置和为f[j] - k的次数</code>也就是每遍历到一个数字,就统计之间求和过程中出现过f[j] - k的次数(这样求更方便,转换思维)</li>
+<li>所以要绑定<code>和,出现次数</code>之间的联系,使用哈希表建立</li>
+<li><img src="/images/posts/prefix_sum/img_04.png" alt="在这里插入图片描述"></li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">    <span class="type">Map</span>&lt;Integer,Integer&gt; <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    map.put(<span class="number">0</span>,<span class="number">1</span>);<span class="comment">// 处理整个数组的和为k的情况  此时就是寻找</span></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0</span>, ret = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> x : nums) {</span><br><span class="line">        sum += x;</span><br><span class="line">        ret += map.getOrDefault(sum - k, <span class="number">0</span>);</span><br><span class="line">        map.put(sum,map.getOrDefault(sum,<span class="number">0</span>) + <span class="number">1</span>);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>04.和可被K整除的子数组个数</strong><br>链接:<a href="https://leetcode.cn/problems/subarray-sums-divisible-by-k/submissions/505151670/">和可被K整除的子数组个数</a><br><strong>思路:</strong><br>本题是蓝桥杯的一道原题,本题的难点在于<code>同余定理</code>,即两个数a , b,如果a mod k ==<code>b mod k,那么(a - b) mod k== 0</code>,在计算前缀和的过程中只需判断在这之前有没有相同的mod结果,如果有,则这两个区间的差值一定是可以被K整除的</p>
+<p>对于i , j(i &lt; j),如果<code>f[j] mod k 的结果等于f[i] mod k的结果,则f[j] - f[i] mod k == 0,即[i + 1,j]的值可以被k整除</code><br><img src="/images/posts/prefix_sum/img_05.png" alt="在这里插入图片描述"></p>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">subarraysDivByK</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> k)</span> {</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果两个前缀和对于 mod k 的结果相同  则这两个前缀和的差值 mod k 一定 == 0</span></span><br><span class="line">    <span class="comment">// 哈希表存放:前缀和 mod k的结果  以及结果出现的次数</span></span><br><span class="line">    <span class="comment">// Map&lt;Integer,Integer&gt; map = new HashMap&lt;&gt;();</span></span><br><span class="line">    <span class="comment">// map.put(0,1);// 初始化mod为0的情况出现的次数为1</span></span><br><span class="line">    <span class="type">int</span>[] <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[k];</span><br><span class="line">    <span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0</span>, cnt = <span class="number">0</span>;</span><br><span class="line">    map[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> x : nums) {</span><br><span class="line">        sum += x;</span><br><span class="line">        <span class="type">int</span> <span class="variable">mod</span> <span class="operator">=</span> (sum % k + k) % k; <span class="comment">// 处理负数取模的情况</span></span><br><span class="line">        cnt += map[mod];</span><br><span class="line">        map[mod]++;</span><br><span class="line">        <span class="comment">// cnt += map.getOrDefault(mod,0);</span></span><br><span class="line">        <span class="comment">// map.put(mod,map.getOrDefault(mod,0) + 1);</span></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> cnt;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>补充</code>:对负数的理解<br><img src="/images/posts/prefix_sum/img_06.png" alt="在这里插入图片描述"></p>
+<hr>
+<p><strong>05.连续数组</strong><br>链接:<a href="https://leetcode.cn/problems/contiguous-array/submissions/505261843/">https://leetcode.cn/problems/contiguous-array/submissions/505261843/</a></p>
+<p><img src="/images/posts/prefix_sum/img_07.png" alt="在这里插入图片描述"></p>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">findMaxLength</span><span class="params">(<span class="type">int</span>[] nums)</span> {</span><br><span class="line">    <span class="type">Map</span>&lt;Integer,Integer&gt; <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();<span class="comment">// 映射关系为:sum 和 当前的下标</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length;</span><br><span class="line">    map.put(<span class="number">0</span>,-<span class="number">1</span>);<span class="comment">// 处理类似于[0,1]这样的情况  </span></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">        <span class="keyword">if</span>(nums[i] == <span class="number">0</span>) sum -= <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> sum += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(map.containsKey(sum)) len = Math.max(len,i - map.get(sum));</span><br><span class="line">        <span class="keyword">else</span> map.put(sum,i);</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> len;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>说明</code></p>
+<ul>
+<li>map.put(0,-1);// 处理类似于[0,1]这样的情况  ,当整个数组的和为0时,此时整个数组中所包含的0,1的数量相等,长度就是整个数组的长度,但是我们这里的核心是找之前是否有相同的值,对于这种情况,之前不存在=0的情况,是我们少考虑了边界情况,因为此时的下标已经走到了n - 1处,所以整个长度就是 此时的下标 - (-1)</li>
+<li>如果两个位置的sum相同,只保留下标更小的那一个(这样才能保证长度是最长的),由于是从左往右遍历,所以遇到有相同的sum,当前下标的和就不保存</li>
+<li>本题并不是预先就创建好dp数组,而是使用一个变量sum<code>动态维护前缀和</code>,这也是此类问题常用的做法之一</li>
+</ul>
+<hr>
+<p><strong>06.矩阵区域和</strong><br>链接:<a href="https://leetcode.cn/problems/matrix-block-sum/description/">https://leetcode.cn/problems/matrix-block-sum/description/</a><br>本题是<code>二维矩阵前缀和</code>模版的一个应用,重点在于dp表的推导方式以及如何利用dp表</p>
+<p>对于dp表来说,为了避免处理大量的边界问题,对dp表进行扩容</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span>[][] <span class="title function_">matrixBlockSum</span><span class="params">(<span class="type">int</span>[][] mat, <span class="type">int</span> k)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> mat.length;</span><br><span class="line">    <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> mat[<span class="number">0</span>].length;</span><br><span class="line">    <span class="type">int</span>[][] <span class="variable">answer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n][m];</span><br><span class="line">    <span class="type">int</span>[][] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>][m + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理前缀和矩阵</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) {</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">1</span>; j &lt;= m; j++) {</span><br><span class="line">            dp[i][j] = dp[i - <span class="number">1</span>][j] + dp[i][j - <span class="number">1</span>] - dp[i - <span class="number">1</span>][j - <span class="number">1</span>] + mat[i - <span class="number">1</span>][j - <span class="number">1</span>];</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理返回值answer数组</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; m; j++) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">x1</span> <span class="operator">=</span> Math.max(i - k,<span class="number">0</span>) + <span class="number">1</span>, y1 = Math.max(j - k,<span class="number">0</span>) + <span class="number">1</span>;</span><br><span class="line">            <span class="type">int</span> <span class="variable">x2</span> <span class="operator">=</span> Math.min(i + k,n - <span class="number">1</span>) + <span class="number">1</span>, y2 = Math.min(j + k,m - <span class="number">1</span>) + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            answer[i][j] = dp[x2][y2] - dp[x1 - <span class="number">1</span>][y2] - dp[x2][y1 - <span class="number">1</span>] + dp[x1 - <span class="number">1</span>][y1 - <span class="number">1</span>];</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> answer;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>07.和为奇数的子数组数目</strong><br>链接:<a href="https://leetcode.cn/problems/number-of-sub-arrays-with-odd-sum/">https://leetcode.cn/problems/number-of-sub-arrays-with-odd-sum/</a><br><strong>分析</strong><br>最开始的想法就是暴力解法,但是时间复杂度为<code>O(N^2)</code>,时间复杂度过高,且无法通过案例.由于是求<code>区间和</code>的问题,想办法使用前缀和,本题主要用到一个数学性质,且看下图分析<br><img src="/images/posts/prefix_sum/img_08.png" alt="在这里插入图片描述"></p>
+<ul>
+<li>题目求的是<code>和为奇数的子数组的数目</code>,我们只要保证<code>f[j]和f[i]</code>的奇偶性不同,就能保证<code>[i+1,j]</code>这个区间内部的和为奇数</li>
+<li><code>f[j]为偶数</code>:只要<code>f[i]为奇数</code>就行,统计<code>j位置之前奇数和的数目</code>即可</li>
+<li><code>f[j]为奇数</code>:只要<code>f[i]为偶数</code>就行,统计<code>j位置之前偶数和的数目</code>即可</li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">MOD</span> <span class="operator">=</span> (<span class="type">int</span>)(<span class="number">1e9</span> + <span class="number">7</span>);</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">numOfSubarrays</span><span class="params">(<span class="type">int</span>[] arr)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> <span class="number">0</span>, odd_cnt = <span class="number">0</span>, even_cnt = <span class="number">1</span>, ret = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> x : arr) {</span><br><span class="line">            sum += x;</span><br><span class="line">            <span class="keyword">if</span>(sum % <span class="number">2</span> == <span class="number">0</span>) {<span class="comment">// 偶数</span></span><br><span class="line">                ret += odd_cnt;<span class="comment">// 统计j位置之前奇数的数目</span></span><br><span class="line">                ++even_cnt;</span><br><span class="line">            }<span class="keyword">else</span> {</span><br><span class="line">                ret += even_cnt;<span class="comment">// 统计j位置之前偶数的数目</span></span><br><span class="line">                ++odd_cnt;</span><br><span class="line">            }</span><br><span class="line"></span><br><span class="line">            ret %= MOD;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret % MOD;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<p><strong>8.连续的子数组和</strong><br>链接:<a href="https://leetcode.cn/problems/continuous-subarray-sum/">https://leetcode.cn/problems/continuous-subarray-sum/</a><br><strong>分析</strong></p>
+<ul>
+<li>其实一眼看去和上面的<code>和可被k整除子数组和</code>相似,使用同余定理,判断是否存在两个modK结果相同的和即可</li>
+<li>注意本题有<code>区间长度</code>的限制,所以需要使用哈希表建立<code>mod的结果和下标之间的映射关系</code></li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">checkSubarraySum</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> k)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length, sum = <span class="number">0</span>;</span><br><span class="line">        <span class="type">Map</span>&lt;Integer, Integer&gt; <span class="variable">hash</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();<span class="comment">// 建立mod 与 下标之间的映射关系</span></span><br><span class="line">        hash.put(<span class="number">0</span>, -<span class="number">1</span>);<span class="comment">// 处理数组和%k==0的情况</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">            sum += nums[i];</span><br><span class="line">            <span class="type">int</span> <span class="variable">mod</span> <span class="operator">=</span> sum % k;</span><br><span class="line">            <span class="keyword">if</span>(hash.containsKey(mod)) {</span><br><span class="line">                <span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> hash.get(mod);</span><br><span class="line">                <span class="keyword">if</span>(i - j &gt;= <span class="number">2</span>) </span><br><span class="line">                    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            }<span class="keyword">else</span> </span><br><span class="line">                hash.put(mod,i);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="细节1-hash-put-0-1-整个数组和-k-x3D-x3D-0-往前找可能根本找不到0的情况-此时区间长度就是整个数组的长度-n-1-1-n-走到最后下标是n-1-只有减去-1才是正确答案2-当具有两个相同mod值时-保留i最小的那个"><a href="#细节1-hash-put-0-1-整个数组和-k-x3D-x3D-0-往前找可能根本找不到0的情况-此时区间长度就是整个数组的长度-n-1-1-n-走到最后下标是n-1-只有减去-1才是正确答案2-当具有两个相同mod值时-保留i最小的那个" class="headerlink" title="细节1. hash.put(0, -1);整个数组和%k==0,往前找可能根本找不到0的情况,此时区间长度就是整个数组的长度,(n - 1) - (-1) == n,走到最后下标是n-1,只有减去-1才是正确答案2. 当具有两个相同mod值时,保留i最小的那个"></a><code>细节</code><br>1. hash.put(0, -1);整个数组和%k==0,往前找可能根本找不到0的情况,此时区间长度就是整个数组的长度,<code>(n - 1) - (-1) == n</code>,走到最后下标是<code>n-1</code>,只有减去<code>-1</code>才是正确答案<br>2. 当具有两个相同mod值时,保留i最小的那个</h2><p><strong>09.最大好子数组和</strong><br>链接:<a href="https://leetcode.cn/problems/maximum-good-subarray-sum/description/">最大好子数组和</a><br><strong>分析</strong></p>
+<ul>
+<li>分析题目:要求的是满足<code>好子数组条件的子数组的最大和</code>,暴力解法很容易想到,时间复杂度为<code>O(N^2)</code></li>
+<li>分析暴力解法时间复杂度过高的原因,在求和的时候进行了大量的重复运算,既然是求区间和,就可以使用<code>前缀和的思想优化为线性时间</code></li>
+</ul>
+<p>思路:</p>
+<ul>
+<li>遍历整个数组,每遍历到一个数字就判断是否有满足条件的数<code>|nums[i] - nums[j]| == k</code>(使用哈希表存储<code>nums[i]和i</code>)，如果存在,则计算这两个元素之间的区间和;</li>
+<li>计算元素区间和的快速方法就是使用<code>前缀和数组</code>,则两个下标<code>(i, j)</code>的区间和能快速求出,注意i为0的情况,此时就是从0到j的区间和</li>
+<li>当有重复出现的key值时,应该如何保留?–<code>贪心算法</code></li>
+<li>题目求解的<code>"最大区间和" </code> ret的计算公式是dp[j] - dp[i](j &gt; i),当dp[i]尽可能小的时候  ret才会尽可能大  所以要保留<code>前缀和较小</code>的那个key的下标</li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">maximumSubarraySum</span><span class="params">(<span class="type">int</span>[] nums, <span class="type">int</span> k)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> nums.length;</span><br><span class="line">        <span class="type">long</span> <span class="variable">ret</span> <span class="operator">=</span> Long.MIN_VALUE;</span><br><span class="line">        <span class="type">long</span>[] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">long</span>[n + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) dp[i] = dp[i - <span class="number">1</span>] + nums[i - <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="type">Map</span>&lt;Integer, Integer&gt; <span class="variable">hash</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();<span class="comment">// 建立nums[i]和i之间的映射关系</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">n1</span> <span class="operator">=</span> nums[i] + k, n2 = nums[i] - k;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 判断是否存在"符合题目条件"的元素,如果存在,则计算这两个元素之间的区间和</span></span><br><span class="line">            <span class="keyword">if</span>(hash.containsKey(n1)) ret = Math.max(ret, dp[i + <span class="number">1</span>] - dp[hash.get(n1)]); </span><br><span class="line">            <span class="keyword">if</span>(hash.containsKey(n2)) ret = Math.max(ret, dp[i + <span class="number">1</span>] - dp[hash.get(n2)]);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 贪心算法  当有重复出现的key值时,应该如何保留?</span></span><br><span class="line">            <span class="comment">// 题目求解的"最大区间和"  ret的计算公式是dp[j] - dp[i](j &gt; i)</span></span><br><span class="line">            <span class="comment">// 当dp[i]尽可能小的时候  ret才会尽可能大  所以要保留前缀和较小的那个key的下标</span></span><br><span class="line">            <span class="keyword">if</span>(hash.containsKey(nums[i])) {<span class="comment">// 之前已经存在  判断是否需要更新下标  贪心算法</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">curIndex</span> <span class="operator">=</span> i, preIndex = hash.get(nums[i]);</span><br><span class="line">                <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> dp[curIndex] &lt; dp[preIndex] ? curIndex : preIndex;<span class="comment">// 保留小的</span></span><br><span class="line">                hash.put(nums[i], index);</span><br><span class="line">            }<span class="keyword">else</span> {<span class="comment">// 不存在直接建立映射关系即可</span></span><br><span class="line">                hash.put(nums[i], i);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> ret == Long.MIN_VALUE ? <span class="number">0</span> : ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>10.表现良好的时间段</strong><br>链接:<a href="https://leetcode.cn/problems/longest-well-performing-interval/description/">表现良好的时间段</a><br><strong>分析</strong></p>
+<ul>
+<li>找<code>劳累时间&gt;非劳累时间</code>的最长子数组</li>
+<li>本题不能使用滑动窗口算法,因为<code>数组+所求</code>不具有单调性</li>
+<li>大于8小时的时间我们当做1,小于或等于8小时的工作时间当做-1,使用前缀和的思想求解</li>
+<li>转化为<code>区间和大于0的最长子数组</code>,注意本题是<code>最长</code>,之前做过一道题目是<code>区间和大于target的最短子数组(滑动窗口解决)</code>,</li>
+<li>遍历整个数组,假设遍历到j位置,前缀和为<code>f[j]</code>,要想存在下标i使得区间<code>[i+1,j]</code>的和大于0,则要存在比f[j]小的区间和f[i]<br><img src="/images/posts/prefix_sum/img_09.png" alt="在这里插入图片描述"></li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">longestWPI</span><span class="params">(<span class="type">int</span>[] hours)</span> {</span><br><span class="line">        <span class="comment">// 学会转化的思路</span></span><br><span class="line">        <span class="comment">// 想到使用1和-1来代替工作时间是否大于8小时</span></span><br><span class="line">        <span class="comment">// 接下来的如何寻找答案没想到</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> hours.length, sum = <span class="number">0</span>, ret = <span class="number">0</span>;</span><br><span class="line">        <span class="type">Map</span>&lt;Integer, Integer&gt; <span class="variable">hash</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">            sum += hours[i] &gt; <span class="number">8</span> ? <span class="number">1</span> : -<span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span>(sum &gt; <span class="number">0</span>) ret = Math.max(ret, i + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">else</span> {<span class="comment">// &lt;0</span></span><br><span class="line">                <span class="keyword">if</span>(hash.containsKey(sum - <span class="number">1</span>)) {</span><br><span class="line">                    ret = Math.max(ret, i - hash.get(sum - <span class="number">1</span>));</span><br><span class="line">                }</span><br><span class="line">            }</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(!hash.containsKey(sum)) hash.put(sum, i);<span class="comment">// 保留下标较小的那个</span></span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><strong>相似题目</strong><br>链接:<a href="https://leetcode.cn/problems/find-longest-subarray-lcci/description/">字母与数字</a><br>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">String</span>[] <span class="title function_">findLongestSubarray</span><span class="params">(String[] arr)</span> {</span><br><span class="line">        <span class="comment">// 相同的话就是判断是否具有相同的sum</span></span><br><span class="line">        <span class="comment">// 如果有就更新区间下标</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> arr.length, sum = <span class="number">0</span>, start = <span class="number">0</span>, end = <span class="number">0</span>;</span><br><span class="line">        <span class="type">Map</span>&lt;Integer, Integer&gt; <span class="variable">hash</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        hash.put(<span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">            sum += arr[i].charAt(<span class="number">0</span>) &gt;= <span class="string">'A'</span> ? <span class="number">1</span> : -<span class="number">1</span>;<span class="comment">// 字母加1  数字减一</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(hash.containsKey(sum)) {</span><br><span class="line">                <span class="keyword">if</span>(i - hash.get(sum) &gt; end - start + <span class="number">1</span>) {<span class="comment">// end - start + 1才是真正的区间长度</span></span><br><span class="line">                    start = hash.get(sum) + <span class="number">1</span>;</span><br><span class="line">                    end = i;</span><br><span class="line">                }</span><br><span class="line">            }<span class="keyword">else</span> {</span><br><span class="line">                hash.put(sum, i);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span>(start == <span class="number">0</span> &amp;&amp; end == <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">String</span>[]{};</span><br><span class="line">        <span class="keyword">return</span> Arrays.copyOfRange(arr, start, end + <span class="number">1</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>11.异或前缀和</strong><br>链接:<a href="https://leetcode.cn/problems/xor-queries-of-a-subarray/description/">https://leetcode.cn/problems/xor-queries-of-a-subarray/description/</a><br><strong>分析</strong></p>
+<ul>
+<li>分析题目,返回的结果是<code>[l,r]区间所有元素的异或结果</code></li>
+<li>最简单的做法就是从<code>l-r暴力异或每一个数字</code>,时间复杂度为O(N)</li>
+<li>分析发现暴力做法的冗余的地方和求任意区间的和相同,故本题也可以使用前缀和数组</li>
+<li>使用前缀和数组dp,<code>dp[i]表示[0,i]区间内部所有元素的异或结果</code></li>
+<li>如何使用前缀和数组呢?也是根据<code>^(异或)</code>的性质,<code>a^a = 0</code></li>
+</ul>
+<p><img src="/images/posts/prefix_sum/img_10.png" alt="在这里插入图片描述"><br>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span>[] <span class="title function_">xorQueries</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span>[][] queries)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> queries.length, n = arr.length;</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[m], dp = <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) </span><br><span class="line">            dp[i] = dp[i - <span class="number">1</span>] ^ arr[i - <span class="number">1</span>];<span class="comment">// 存储异或结果</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// O(N + M)</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; m; i++) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">start</span> <span class="operator">=</span> queries[i][<span class="number">0</span>], end = queries[i][<span class="number">1</span>];</span><br><span class="line">            ret[i] = dp[end + <span class="number">1</span>] ^ dp[start];<span class="comment">// 注意arr的下标和dp的下标存在加1的关系</span></span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<p><strong>12.构建回文串检测(较难)</strong><br>链接:<a href="https://leetcode.cn/problems/can-make-palindrome-from-substring/description/">https://leetcode.cn/problems/can-make-palindrome-from-substring/description/</a><br><strong>分析</strong></p>
+<ul>
+<li>对于每次询问,必须在<code>至多改变k个字母的前提下,使得子串成为回文子串</code></li>
+</ul>
+<p><strong>1.关于修改回文子串的一个规律</strong></p>
+<ul>
+<li>如果子串内部的每个字符出现的次数都是偶数,天然就是回文子串,不需要进行任何操作</li>
+<li>如果子串内部有一个字符出现的次数为奇数(假设为a),那么可以将a当做中心,此子字符串仍然是回文子串,同样不需要进行任何操作</li>
+<li>如果子串内部有两个字符出现的次数为奇数(假设为a,b),需要<code>一次操作(将b替换成a)</code>才能使子串为回文子串</li>
+<li>如果子串内部有三个字符出现的次数为奇数(假设为a,b,c),需要<code>一次操作(将c替换成b,这样b,c出现的次数都是偶数)</code>才能是子串为回文子串</li>
+<li>如果子串内部有四个字符出现的次数为奇数(假设为a,b,c,d),需要<code>两次操作(将c替换成b,将d替换为a,此时a,b,c,d出现的次数都为偶数)</code>才能是子串为回文子串</li>
+</ul>
+<p>结论:</p>
+<blockquote>
+<p>如果一个字符串内部出现次数为奇数的字符的个数为m,那么至多需要<code>m/2</code>次操作就能使该字符串转换为回文串</p>
+</blockquote>
+<p><img src="/images/posts/prefix_sum/img_11.png" alt="在这里插入图片描述"></p>
+<p><strong>2.使用前缀和数组统计每个子串内部各个字符出现的次数</strong></p>
+<ul>
+<li>知道上述规律,关键在于如何快速得到子串内部各个字符出现的次数?最简单的想法就是暴力解法,遍历每一个字符和其出现的次数,最后在统计出现次数为奇数的字符个数</li>
+<li>此外还可以使用<code>前缀和数组统计</code>,具体来说使用一个dp表</li>
+<li><code>dp[i][c]:表示[0,i]区间内部,字符c出现的次数</code></li>
+</ul>
+<p><img src="/images/posts/prefix_sum/img_12.png" alt="在这里插入图片描述"></p>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;Boolean&gt; <span class="title function_">canMakePaliQueries</span><span class="params">(String s, <span class="type">int</span>[][] queries)</span> {</span><br><span class="line">        <span class="comment">// 1.构建前缀和数组</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> s.length();</span><br><span class="line">        <span class="type">int</span>[][] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>][<span class="number">26</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) {</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; <span class="number">26</span>; j++)</span><br><span class="line">                dp[i][j] = dp[i - <span class="number">1</span>][j];</span><br><span class="line"></span><br><span class="line">            dp[i][s.charAt(i - <span class="number">1</span>) - <span class="string">'a'</span>]++;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.根据查询返回结果</span></span><br><span class="line">        <span class="type">List</span>&lt;Boolean&gt; <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span>[] query : queries) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">l</span> <span class="operator">=</span> query[<span class="number">0</span>], r = query[<span class="number">1</span>], k = query[<span class="number">2</span>];</span><br><span class="line">            <span class="type">int</span> <span class="variable">oddCnt</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; <span class="number">26</span>; j++)</span><br><span class="line">                <span class="keyword">if</span>((dp[r + <span class="number">1</span>][j] - dp[l][j]) % <span class="number">2</span> != <span class="number">0</span>)</span><br><span class="line">                    oddCnt++;</span><br><span class="line"></span><br><span class="line">            ret.add(oddCnt / <span class="number">2</span> &lt;= k);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>优化一</strong></p>
+<ul>
+<li>我们只关注每个字符出现次数的奇偶性,并不关注具体出现了多少次</li>
+<li>使用0表示出现偶数次  1表示出现奇数次</li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;Boolean&gt; <span class="title function_">canMakePaliQueries</span><span class="params">(String s, <span class="type">int</span>[][] queries)</span> {</span><br><span class="line">        <span class="comment">// 优化1:我们只关注每个字符出现次数的奇偶性,并不关注具体出现了多少次</span></span><br><span class="line">        <span class="comment">// 使用0表示出现偶数次  1表示出现奇数次</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> s.length();</span><br><span class="line">        <span class="type">int</span>[][] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>][<span class="number">26</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) {</span><br><span class="line">            dp[i] = dp[i - <span class="number">1</span>].clone();</span><br><span class="line">            dp[i][s.charAt(i - <span class="number">1</span>) - <span class="string">'a'</span>]++;</span><br><span class="line">            dp[i][s.charAt(i - <span class="number">1</span>) - <span class="string">'a'</span>] %= <span class="number">2</span>;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.根据查询返回结果</span></span><br><span class="line">        <span class="type">List</span>&lt;Boolean&gt; <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span>[] query : queries) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">l</span> <span class="operator">=</span> query[<span class="number">0</span>], r = query[<span class="number">1</span>], k = query[<span class="number">2</span>];</span><br><span class="line">            <span class="type">int</span> <span class="variable">oddCnt</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; <span class="number">26</span>; j++)</span><br><span class="line">                oddCnt += (dp[r + <span class="number">1</span>][j] == dp[l][j] ? <span class="number">0</span> : <span class="number">1</span>);<span class="comment">// 奇偶性不同 相减一定为奇数  表示该字符出现的次数为奇数</span></span><br><span class="line"></span><br><span class="line">            ret.add(oddCnt / <span class="number">2</span> &lt;= k);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>优化2</strong></p>
+<ul>
+<li><p>考虑到只有<code>0,1</code>两个数字,在判断字符出现次数是否为奇数时,我们通过判断<code>l,r的奇偶性是否相同</code>来抉择</p>
+</li>
+<li><p>如果奇偶性相同,则字符出现次数为偶数,此时要么全是1,要么全是0,此时异或的结果一定为0</p>
+</li>
+<li><p>如果奇偶性不同,则字符出现次数为奇数,此时一个是1,一个是0,此时异或的结果一定为1</p>
+</li>
+<li><p>可以使用异或运算代替奇偶性的判断</p>
+</li>
+<li><p>同时在dp表进行初始化时也可以进行<code>异或运算的优化</code>,此时遍历到字符<code>s[i]</code>,该位置字符出现的次数应该+1</p>
+</li>
+<li><p>如果上一层出现的次数为0,本层应该变为1(偶数变奇数),使用<code>0^1</code>同样可以完成此操作</p>
+</li>
+<li><p>同理,如果上次层出现的次数为1,本层应该为2(奇数变偶数),使用<code>1^1 = 0</code>同样可以完成此操作</p>
+</li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;Boolean&gt; <span class="title function_">canMakePaliQueries</span><span class="params">(String s, <span class="type">int</span>[][] queries)</span> {</span><br><span class="line">        <span class="comment">// 优化2:使用异或的性质(无进位加法)</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> s.length();</span><br><span class="line">        <span class="type">int</span>[][] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>][<span class="number">26</span>];</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= n; i++) {</span><br><span class="line">            dp[i] = dp[i - <span class="number">1</span>].clone();</span><br><span class="line">            dp[i][s.charAt(i - <span class="number">1</span>) - <span class="string">'a'</span>] ^= <span class="number">1</span>;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.根据查询返回结果</span></span><br><span class="line">        <span class="type">List</span>&lt;Boolean&gt; <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span>[] query : queries) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">l</span> <span class="operator">=</span> query[<span class="number">0</span>], r = query[<span class="number">1</span>], k = query[<span class="number">2</span>];</span><br><span class="line">            <span class="type">int</span> <span class="variable">oddCnt</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; <span class="number">26</span>; j++)</span><br><span class="line">                oddCnt += dp[r + <span class="number">1</span>][j] ^ dp[l][j];</span><br><span class="line"></span><br><span class="line">            ret.add(oddCnt / <span class="number">2</span> &lt;= k);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>优化3</strong></p>
+<ul>
+<li>考虑到大小为26的数组只存储<code>0,1</code>,可以将其压缩到一个数中,也就是经典的<code>二进制压缩</code></li>
+<li>对于一个整数来说,大小为4个字节,即<code>32个比特位</code>,每一个比特位<code>要么是0,要么是1</code>,所以考虑将<code>0,1</code>存储到数字中</li>
+<li>具体来说,使用最低位标识字符a出现次数的奇偶性,如果是0表示出现次数为偶数次,如果是1,表示出现次数为奇数次;同理,使用第二位表示字符b出现次数的奇偶性……以此类推</li>
+<li>当前字符是<code>s[i]</code>,上一次出现的次数为0,那么本层出现的次数应该为1,如何通过异或实现呢?只需要让上一个层的数字异或<code>1 &lt;&lt; (s[i] - 'a')</code>即可,这一位就从0-1;如果上一层是1,本层就变为0(还是^的运算性质)</li>
+<li>那么如何统计<code>[l, r]区间内部各个字符出现的次数呢?</code>注意,异或运算是<code>并行运算</code>的,每一位都在进行异或运算,用<code>dp[r + 1] ^ dp[l]</code>,得到结果中1的个数就是此区间内部字符出现次数为奇数的个数(只有1和0异或的结果才是1,此时表示奇偶性不同)</li>
+</ul>
+<p>代码:</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;Boolean&gt; <span class="title function_">canMakePaliQueries</span><span class="params">(String s, <span class="type">int</span>[][] queries)</span> {</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> s.length();</span><br><span class="line">        <span class="type">int</span>[] <span class="variable">dp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">int</span>[n + <span class="number">1</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">bit</span> <span class="operator">=</span> <span class="number">1</span> &lt;&lt; (s.charAt(i) - <span class="string">'a'</span>);</span><br><span class="line">            dp[i + <span class="number">1</span>] = dp[i] ^ bit; <span class="comment">// 该比特对应字母的奇偶性：奇数变偶数，偶数变奇数</span></span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="type">List</span>&lt;Boolean&gt; <span class="variable">ret</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span>[] q : queries) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">left</span> <span class="operator">=</span> q[<span class="number">0</span>], right = q[<span class="number">1</span>], k = q[<span class="number">2</span>];</span><br><span class="line">            <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> Integer.bitCount(dp[right + <span class="number">1</span>] ^ dp[left]);</span><br><span class="line">            ret.add(m / <span class="number">2</span> &lt;= k);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+
+
+<hr>
+<p><code>总结</code></p>
+<ol>
+<li>前缀和算法快的原因在于<code>在常数时间内求出任意区间的和</code>,常规求取区间和的做法是依次遍历</li>
+<li>前缀和算法根据形式可分为<code>一维和二维</code>,本质上都是<code>动态规划问题</code></li>
+<li>构建dp表简单,难点在于如何使用创建的前/后缀和数组</li>
+<li>优化:可以使用变量替代数组,进行空间优化</li>
+<li>不仅仅是数学意义上的<code>前缀和</code>,还可以用于统计字符出现的次数,用于快速查找之前遍历过程中的某一个量,经常用于解决类似于<code>最长xxxx区间问题</code></li>
+<li>除了预先准备好前缀和数组,还经常使用的做法是使用一个变量sum来动态的维护前缀和</li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>前缀和</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>wechat-mp-publisher（微信公众号自动发布SKILL）创建分享</title>
+    <url>/2026/05/13/wechat-mp-publisher%EF%BC%88%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7%E8%87%AA%E5%8A%A8%E5%8F%91%E5%B8%83SKILL%EF%BC%89%E5%88%9B%E5%BB%BA%E5%88%86%E4%BA%AB/</url>
+    <content><![CDATA[<blockquote>
+<p>需求：</p>
+<ol>
+<li>利用 claude 将本地 md 文件自动发布到微信公众号草稿箱（无法直接发布）<br>本文主要内容： 过程分享以及踩坑指南</li>
+</ol>
+</blockquote>
+<h1 id="零-前言"><a href="#零-前言" class="headerlink" title="零. 前言"></a>零. 前言</h1><p>微信公众号编辑器渲染的方式是 html，一直都是使用 <code>https://github.com/Spute/obsidian-copy-to-mp</code> 将本地 md手动复制到微信公众号编辑页面，还要填写标题，作者，选择封面图片等操作，效率很低，今天探索使用 skill-creator 将整个操作封装为 skill</p>
+<hr>
+<h1 id="一-利用-skill-creator-以对话的方式创建-skill"><a href="#一-利用-skill-creator-以对话的方式创建-skill" class="headerlink" title="一. 利用 skill-creator 以对话的方式创建 skill"></a>一. 利用 skill-creator 以对话的方式创建 skill</h1><blockquote>
+<p>首先获取微信公众号的 Appid 和 AppSecret</p>
+</blockquote>
+<p>进入： <a href="https://developers.weixin.qq.com/console/index?tab1=business&amp;tab2=dev">微信开发者平台</a>，点击我的业务–》公众号<br><img src="/images/posts/wechat-mp-publisher-skill/img_01.png" alt="Pasted image 20260214183527"><br><img src="/images/posts/wechat-mp-publisher-skill/img_02.png" alt="Pasted image 20260214183658"></p>
+<blockquote>
+<p>打开 ClaudeCode，输入以下内容</p>
+</blockquote>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">帮我创建一个skill，基本功能是自动把本地md文件发送到微信公众号草稿箱，我的微信公众号appid：（替换为自己的），appsecret：（替换为自己的）</span><br></pre></td></tr></tbody></table></figure>
+<p>他会帮你创建好对应的 python 脚本和 skill，但由于微信公众号 API 的限制，需要手动配置一些信息，接下来是和 cc 多轮对话过程中需要手动配置的内容<br><img src="/images/posts/wechat-mp-publisher-skill/img_03.png" alt="Pasted image 20260214183853"></p>
+<hr>
+<h1 id="二-手动配置"><a href="#二-手动配置" class="headerlink" title="二. 手动配置"></a>二. 手动配置</h1><h2 id="配置-1：配置-IP-白名单"><a href="#配置-1：配置-IP-白名单" class="headerlink" title="配置 1：配置 IP 白名单"></a>配置 1：配置 IP 白名单</h2><p><strong>报错背景：</strong><br><img src="/images/posts/wechat-mp-publisher-skill/img_04.png" alt="Pasted image 20260214191130"></p>
+<p><strong>配置方式：</strong> 回到此页面，在【开发者密钥】中配置 IP 白名单<br><img src="/images/posts/wechat-mp-publisher-skill/img_05.png" alt="Pasted image 20260214184229"></p>
+<hr>
+<h2 id="配置-2：thumb-media-id-配置"><a href="#配置-2：thumb-media-id-配置" class="headerlink" title="配置 2：thumb_media_id 配置"></a>配置 2：thumb_media_id 配置</h2><p><strong>报错背景：</strong><br><img src="/images/posts/wechat-mp-publisher-skill/img_06.png" alt="Pasted image 20260214191223"><br><code>thumb_media_id</code>：封面图片素材 id，微信公众号的文章都必须配置封面图片</p>
+<p><strong>配置方式：</strong></p>
+<blockquote>
+<p> 主要依赖于两个接口</p>
+<ol>
+<li>GetAccessToken：获取 token</li>
+<li>AddMaterial：将图片上传到公众号素材库<br>AddMaterial  接口 <code>依赖于</code> getAccessToken 的返回值</li>
+</ol>
+</blockquote>
+<h3 id="Step-1：获取-access-token"><a href="#Step-1：获取-access-token" class="headerlink" title="Step 1：获取 access_token"></a>Step 1：获取 access_token</h3><blockquote>
+<p>getAccessToken：<br>作用：本接口用于获取获取全局唯一后台接口调用凭据（Access Token）<br>链接：<a href="https://developers.weixin.qq.com/doc/subscription/api/base/api_getaccesstoken.html">基础接口 / 获取接口调用凭据</a><br><img src="/images/posts/wechat-mp-publisher-skill/img_07.png" alt="Pasted image 20260214185141"></p>
+</blockquote>
+<h3 id="Step-2：上传图片"><a href="#Step-2：上传图片" class="headerlink" title="Step 2：上传图片"></a>Step 2：上传图片</h3><p>此处为了方便直接使用 curl 命令完成上传</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">curl -F "media=@/path/to/image.png" "https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=ACCESS_TOKEN&amp;type=thumb"</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>media=@：后面拼接本地要上传的图片路径</li>
+<li>access_token：替换为上一步复制的值</li>
+</ul>
+<figure class="highlight json"><table><tbody><tr><td class="code"><pre><span class="line"><span class="punctuation">{</span></span><br><span class="line">  <span class="attr">"media_id"</span><span class="punctuation">:</span> <span class="string">"xxx"</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">"url"</span><span class="punctuation">:</span> <span class="string">"http://xxx"</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">"item"</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">}</span></span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>media_id 就是 thumb_media_id, 复制此字段的值</li>
+</ul>
+<h3 id="（非必须）Step-3：验证上传成功"><a href="#（非必须）Step-3：验证上传成功" class="headerlink" title="（非必须）Step 3：验证上传成功"></a>（非必须）Step 3：验证上传成功</h3><blockquote>
+<p>getMaterial：<br>作用：本接口用于根据media_id获取永久素材的详细信息<br>链接：<a href="https://developers.weixin.qq.com/doc/subscription/api/material/permanent/api_getmaterial.html">素材管理 / 永久素材 / 获取永久素材</a></p>
+</blockquote>
+<p><img src="/images/posts/wechat-mp-publisher-skill/img_08.png" alt="Pasted image 20260214190819"></p>
+<hr>
+<h1 id="三-验证"><a href="#三-验证" class="headerlink" title="三. 验证"></a>三. 验证</h1><p><img src="/images/posts/wechat-mp-publisher-skill/img_09.png" alt="Pasted image 20260214191245"> <img src="/images/posts/wechat-mp-publisher-skill/img_10.png" alt="Pasted image 20260214191352"></p>
+<p>吐槽：微信的接口文档维护的太差了，入口难找，接口文档写的也一般…<br>注：完整的 SKILL. md 和主要脚本可后台私信</p>
+<hr>
+<h1 id="四-进化（适配-obsidian）"><a href="#四-进化（适配-obsidian）" class="headerlink" title="四. 进化（适配 obsidian）"></a>四. 进化（适配 obsidian）</h1><p><img src="/images/posts/wechat-mp-publisher-skill/img_11.png" alt="Pasted image 20260214195154"><br>上面生成的 SKILL 针对 obsidna 中图片路径的转换不是很好，在草稿箱中无法展示图片，正当我发愁时，突然想到我一直在用的工具：<code>https://github.com/Spute/obsidian-copy-to-mp</code>（最开始提到的），这个工具就可以实现 <code>在obsidian中直接复制，粘贴到微信公众号编辑器中可正常展示图片</code>，直接把此仓库喂给 cc，让他自己调整 SKILL 和脚本<br><img src="/images/posts/wechat-mp-publisher-skill/img_12.png" alt="Pasted image 20260214195003"> <img src="/images/posts/wechat-mp-publisher-skill/img_13.png" alt="Pasted image 20260214195021"><br>如果可以的话，请支持下：<code>https://github.com/Spute/obsidian-copy-to-mp</code> 作者！</p>
+]]></content>
+      <categories>
+        <category>教程分享</category>
+      </categories>
+      <tags>
+        <tag>微信公众号</tag>
+        <tag>自动化</tag>
+        <tag>Skill</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>利用Codex制作论文答辩 PPT</title>
+    <url>/2026/05/13/%E5%88%A9%E7%94%A8Codex%E5%88%B6%E4%BD%9C%E8%AE%BA%E6%96%87%E7%AD%94%E8%BE%A9-PPT/</url>
+    <content><![CDATA[<blockquote>
+<p>最近需要做答辩的 PPT 了,恰巧在网上看到<a href="https://blog.csdn.net/2201_75420345/article/details/160890409">一位博主分享的实操</a>,于是实践了下并做了一些拓展。<br>本文记录下我的实践过程以及拓展思路</p>
+</blockquote>
+<h1 id="一-准备工作"><a href="#一-准备工作" class="headerlink" title="一.准备工作"></a>一.准备工作</h1><p>环境: codex<br>原始数据: 论文.pdf + 学校 logo.png + 论文答辩 PPT(可选)<br><img src="/images/posts/codex-thesis-defense-ppt/img_01.png" alt="Pasted image 20260513150924"></p>
+<h1 id="二-我的拓展"><a href="#二-我的拓展" class="headerlink" title="二.我的拓展"></a>二.我的拓展</h1><p><a href="https://blog.csdn.net/2201_75420345/article/details/160890409">这篇博客</a> 提供的 workflow和 prompt 整体思路、注意事项以及操作方式都比较清晰。如果只是想快速上手，直接参考原文即可。<br>不过在实际使用过程中，我发现这种方式仍然存在两个问题：</p>
+<ol>
+<li>流程需要分步执行: 没有完全解放人力,需要分步执行,会导致频繁切换我们的注意力</li>
+<li>最终生成的 PPT 不可编辑: 是纯图片的(当然这种形式也有自身的优势,作者原文也有提到),但我还是想生成一个可编辑的 PPT</li>
+</ol>
+<p>针对上述问题,我主要做了两个拓展:</p>
+<ol>
+<li>/goal 的实践,充分发挥 agent 的能力,减少人为确认和注意力切换</li>
+<li>结合 开源项目 <a href="https://github.com/hugohe3/ppt-master">PPT Master</a> 制作<strong>可编辑的PPT</strong></li>
+</ol>
+<h1 id="三-x2F-goal-的想法-or-原理"><a href="#三-x2F-goal-的想法-or-原理" class="headerlink" title="三./goal 的想法 or 原理"></a>三./goal 的想法 or 原理</h1><blockquote>
+<p>[!note]- 这一部分主要是我对 <code>/goal</code> 的一些理解。如果只关注具体操作流程，可以直接跳到下一节。<br>  经常 vibe coding 的朋友肯定会有这么一个感觉,就是 AI 时代注意力变得越来越稀缺,当你打开多个终端窗口时,你的效率因为<strong>频繁的上下文切换</strong>反而会变得更低,而且会让你变得很痛苦……而且总是会陷入<strong>garbage in garbage out</strong>的死循环<br>  因此，一个比较理想的工作方式是：<strong>尽可能让 agent 在一次任务中连续完成更多步骤，而不是每完成一步就停下来等待人工确认。</strong><br>,或者说可以让我减少<strong>上下文切换的次数</strong>,对于一个完整的工程,上下文切换是无法避免的(不可能一次性,完美的完成任务,除非任务极其简单),也就是说<strong>这部分成本是无法避免的</strong>,此时我们可以使用<strong>摊销(amortize)</strong>,就像进程切换时,上下文切换的成本是固定的,此时通过提高 time slice 就可以让这些固定成本看起来没那么多<br>  按照这个思路, 提高 AI 应用效率的办法是<strong>尽可能让每次工作时间足够长</strong>, codex 推出的/goal 就是这方面的一个实践,我比较认可的最佳实践是党哥提到的<strong>goal driven</strong><br>  <img src="/images/posts/codex-thesis-defense-ppt/img_02.webp" alt="利用Codex制作论文答辩 PPT-1778652268810"><br>  其实这套机制的核心在于<strong>是否能提出足够清晰的目标和足够准确的验证标准(test case)</strong>,否则就像无头苍蝇,永远需要人干预.</p>
+</blockquote>
+<h1 id="四-实践"><a href="#四-实践" class="headerlink" title="四.实践"></a>四.实践</h1><blockquote>
+<p>下面是/goal 在制作答辩 PPT 上的实践</p>
+</blockquote>
+<ul>
+<li>目标: 根据博客的 workflow 和本地文件夹(毕业论文,学院 logo)制作出我的毕业论文答辩 PPT</li>
+<li>期望: 当 codex 开始工作后,不会停下来需要我确认</li>
+</ul>
+<p>由于 codex 不会自动推荐主动的子代理,但是他有<strong>plan 模式</strong>,我们可以先让他识别出<strong>哪些地方是不明确的,是要我提前说明的</strong>,在对话框中打开 plan 模式并输入下面的 prompt</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">我想参考下面的这篇博客制作我的毕业论文答辩ppt, "https://blog.csdn.net/2201_75420345/article/details/160890409"</span><br><span class="line">,你根据这个博客先列出一个制作的计划,并在可能需要我确认地方让我选择确认(比如视觉方案),确保整个执行过程不会停止</span><br></pre></td></tr></tbody></table></figure>
+<p>在这个过程中他会识别出哪些地方需要我确认,并向我提问确认<br><img src="/images/posts/codex-thesis-defense-ppt/img_03.webp" alt="利用Codex制作论文答辩 PPT-1778652735324"><br>我确认完这些问题后，Codex 生成了一份较完整的制作计划。这个计划中不仅包含 PPT 的结构安排，还包含实施步骤和测试验收标准。</p>
+<blockquote>
+<p>[!note]- 生成的计划</p>
+<h1 id="毕业论文答辩-PPT-制作计划"><a href="#毕业论文答辩-PPT-制作计划" class="headerlink" title="毕业论文答辩 PPT 制作计划"></a>毕业论文答辩 PPT 制作计划</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>参考博客流程，采用“先提炼结构、再确定视觉、最后生成整页图片式 PPT”的方式制作答辩稿。最终目标是生成一份适合 <strong>6-8 分钟本科答辩、约 16 页、蓝白工程风、整页图片铺满且带演讲者备注</strong> 的 PPT。</p>
+<h2 id="已确认方案"><a href="#已确认方案" class="headerlink" title="已确认方案"></a>已确认方案</h2><ul>
+<li><strong>视觉风格</strong>：蓝白工程风，突出 WebGIS、系统架构、数据流、地图可视化与工程实现。</li>
+<li><strong>页数与时长</strong>：控制在 16 页左右，适配 6-8 分钟答辩。</li>
+<li><strong>生成方式</strong>：每页先生成完整页面图片，再铺满 PPT；除演讲者备注外，页面中不放可编辑元素。</li>
+<li><strong>素材来源</strong>：优先使用本地已有论文与图片素材，包括 <code>毕业答辩</code> 中的系统截图、架构图、专题图和 logo。</li>
+<li><strong>执行不中断策略</strong>：如遇单页生成效果不佳、图片缺失或内容不确定，默认先使用论文现有文字和已有图表生成可用版本，再记录为待微调项，不中断整体 PPT 生成。</li>
+</ul>
+<h2 id="PPT-结构规划"><a href="#PPT-结构规划" class="headerlink" title="PPT 结构规划"></a>PPT 结构规划</h2><ol>
+<li>封面：题目、姓名、学院、指导教师，背景使用 xx弱化视觉。</li>
+<li>目录：研究背景、系统设计、数据体系、功能实现、测试部署、总结展望。</li>
+<li>研究背景：(不方便透露)</li>
+<li>研究问题：(不方便透露)</li>
+<li>研究目标与内容：(不方便透露)</li>
+<li>技术路线：(不方便透露)</li>
+<li>研究区与数据：(不方便透露)</li>
+<li>系统总体架构：(不方便透露)</li>
+<li>数据库与地图服务设计：(不方便透露)</li>
+<li>核心功能一：(不方便透露)</li>
+<li>核心功能二：(不方便透露)</li>
+<li>核心功能三：(不方便透露)</li>
+<li>系统运行效果：综合使用系统截图展示主要界面。</li>
+<li>测试、优化与部署：功能测试、性能测试、Docker Compose 部署。</li>
+<li>特色与创新点：(不方便透露)</li>
+<li>总结与展望：主要成果、不足、后续扩展方向与致谢。</li>
+</ol>
+<h2 id="实施步骤"><a href="#实施步骤" class="headerlink" title="实施步骤"></a>实施步骤</h2><ul>
+<li>建立独立输出目录，例如 <code>毕业设计/答辩PPT/</code>，内部放置结构稿、视觉参考图、页面图片、PPTX 输出文件和备注稿。</li>
+<li>读取论文 PDF/LaTeX 内容，生成 <code>答辩PPT结构.md</code>，每页包含标题、核心观点、建议图示和备注要点。</li>
+<li>基于蓝白工程风生成 3-5 张视觉参考页：封面、目录、章节页、系统架构页、成果展示页。</li>
+<li>按确认后的结构生成 16 张完整页面图片，每页统一比例 16:9，控制页面文字量，重点使用图、流程、截图和关键词。</li>
+<li>使用 PPT 生成工具把每张图片铺满对应幻灯片，并为每页写入演讲者备注。</li>
+<li>生成最终文件：<code>毕业设计/答辩PPT/</code></li>
+<li>完成后检查：页数、错别字、logo 位置、图片清晰度、备注是否适合 6-8 分钟讲述。</li>
+</ul>
+<h2 id="测试与验收"><a href="#测试与验收" class="headerlink" title="测试与验收"></a>测试与验收</h2><ul>
+<li>打开 PPT 检查所有页面是否铺满，无裁切、无变形、无缺图。</li>
+<li>检查每页备注是否存在，并按 6-8 分钟答辩节奏压缩为口语化表达。</li>
+<li>核对关键事实：(不方便透露)</li>
+<li>对系统截图页重点检查图例、地图、统计图是否清晰可辨。</li>
+<li>若某页内容错误，只重生成对应页面图片并替换，不重做整套 PPT。</li>
+</ul>
+<h2 id="默认假设"><a href="#默认假设" class="headerlink" title="默认假设"></a>默认假设</h2><ul>
+<li>答辩对象为本科毕业论文答辩。</li>
+<li>学校/学院视觉不强制套用官方模板，优先保证正式、清晰、工程感。</li>
+<li>页面不可编辑是有意选择，后续修改通过重生成单页图片完成。</li>
+<li>不新增遥测、联网素材或外部数据，除非你明确要求。</li>
+</ul>
+</blockquote>
+<p>我们会发现,在计划的最后,明确写了<strong>测试与验收</strong>,这部分就是 goal 的 testcase,点击执行之后,就会生成对应的 PPT<br><img src="/images/posts/codex-thesis-defense-ppt/img_04.webp" alt="利用Codex制作论文答辩 PPT-1778653169974"></p>
+<p><img src="/images/posts/codex-thesis-defense-ppt/img_05.webp" alt="利用Codex制作论文答辩 PPT-1778653502672"><br>从最终效果来看，这种方式比一步步手动提示更高效，也更适合处理 “目标清楚但步骤较多” 的任务。</p>
+<h1 id="五-结合-PPT-Master-制作可编辑的-PPT"><a href="#五-结合-PPT-Master-制作可编辑的-PPT" class="headerlink" title="五.结合 PPT Master 制作可编辑的 PPT"></a>五.结合 <a href="https://github.com/hugohe3/ppt-master">PPT Master</a> 制作<strong>可编辑的 PPT</strong></h1><p>上述操作生成的 PPT 属于<strong>AI 图像生成派</strong>,生成的 PPT 是不可编辑的,每一页是纯图片的形式,博客作者也提到这样做的好处<br><img src="/images/posts/codex-thesis-defense-ppt/img_06.webp" alt="利用Codex制作论文答辩 PPT-1778653644363"><br>但缺点也很明显,就是一旦有细小的改动,就需要让 AI 重新生成一次,改动成本太大,阅读了<a href="https://mp.weixin.qq.com/s/RqX-pzhjxQkZktvpdE64XA">这个公众号文章</a>后,了解到 <a href="https://github.com/hugohe3/ppt-master">PPT Master</a> 就是专门用于制作<strong>可编辑 PPT</strong>的,于是结合此项目和 codex,重构了一幅可编辑的答辩 PPT(<a href="https://mp.weixin.qq.com/s/RqX-pzhjxQkZktvpdE64XA">这篇文章关于AI制作PPT总结的很全,推荐阅读!</a>)<br><img src="/images/posts/codex-thesis-defense-ppt/img_07.webp" alt="利用Codex制作论文答辩 PPT-1778654003057"><br><img src="/images/posts/codex-thesis-defense-ppt/img_08.webp" alt="利用Codex制作论文答辩 PPT-1778654126056"><br>Prompt:</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">很好!现在这个ppt已经很不错了,接下来使用这个开源项目将这个ppt转换为可编辑的"https://github.com/hugohe3/ppt-master",新增一个ppt文件</span><br></pre></td></tr></tbody></table></figure>
+
+<p>总结一下,我认为比较合理的工作流是：</p>
+<ol>
+<li>参考博客, 先用 Codex 快速生成一版视觉效果较好的图片式 PPT；</li>
+<li>确认整体结构、风格和内容没有大问题；</li>
+<li>再结合 PPT Master 转换或重构为可编辑 PPT；</li>
+<li>最后人工进行细节校对和答辩前微调。</li>
+</ol>
+<p>这种方式兼顾了 AI 生成的效率和正式答辩场景下的可维护性。</p>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献 :"></a>参考文献 :</h1><ul>
+<li>CSDN 博客：使用 Codex 制作论文答辩 PPT 的实操流程<br>  <a href="https://blog.csdn.net/2201_75420345/article/details/160890409">https://blog.csdn.net/2201_75420345/article/details/160890409</a></li>
+<li>PPT Master GitHub 项目<br>  <a href="https://github.com/hugohe3/ppt-master">https://github.com/hugohe3/ppt-master</a></li>
+<li>关于 AI 制作 PPT 的总结文章<br>  <a href="https://mp.weixin.qq.com/s/RqX-pzhjxQkZktvpdE64XA">https://mp.weixin.qq.com/s/RqX-pzhjxQkZktvpdE64XA</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>教程分享</category>
+      </categories>
+      <tags>
+        <tag>Codex</tag>
+        <tag>PPT</tag>
+        <tag>AI工具</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>毕业!</title>
+    <url>/2026/06/27/%E6%AF%95%E4%B8%9A/</url>
+    <content><![CDATA[<blockquote>
+<p>2026 年 6 月 13 日,是我在吉林大学四年生活的最后一天.<br>没有穿上学士服,没有参加毕业典礼,没有拍毕业照,没有煽情的离别,对于最后的大学时光,也没有一丝的留念,我想说的是: <code>我要去过新的生活了!</code></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>感想</category>
+      </categories>
+      <tags>
+        <tag>毕业!</tag>
+      </tags>
+  </entry>
+</search>

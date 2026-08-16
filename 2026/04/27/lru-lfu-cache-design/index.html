@@ -1,0 +1,987 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.41.0" theme-name="Stellar" theme-version="1.41.0">
+  
+  
+  <meta name="generator" content="Hexo 6.3.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel="preconnect" href="https://gcore.jsdelivr.net" crossorigin><link rel="preconnect" href="https://unpkg.com" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://cdn.bootcdn.net" crossorigin>
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  <meta name="theme-color" content="#f9fafb">
+  <title>从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计 - 小林绿子的博客</title>
+
+  <meta name="description" content="今天翻到《操作系统导论》（Operating Systems: Three Easy Pieces）里讲页面置换的那一章，忽然觉得书上的理论与 LeetCode 上的题目产生了奇妙的联结。虚拟内存管理中的“该换出哪一页”，和工程中随处可见的缓存淘汰策略，本质上在问同一个问题：如何用有限的空间，接住未来无限且不可预知的访问序列？ 有没有想到 CPU 调度算法的 MLFQ? 一点背景：页交换与局部性操">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计">
+<meta property="og:url" content="https://mylvzi.github.io/2026/04/27/lru-lfu-cache-design/">
+<meta property="og:site_name" content="小林绿子的博客">
+<meta property="og:description" content="今天翻到《操作系统导论》（Operating Systems: Three Easy Pieces）里讲页面置换的那一章，忽然觉得书上的理论与 LeetCode 上的题目产生了奇妙的联结。虚拟内存管理中的“该换出哪一页”，和工程中随处可见的缓存淘汰策略，本质上在问同一个问题：如何用有限的空间，接住未来无限且不可预知的访问序列？ 有没有想到 CPU 调度算法的 MLFQ? 一点背景：页交换与局部性操">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mylvzi.github.io/images/avatar.png">
+<meta property="article:published_time" content="2026-04-27T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-16T14:45:15.904Z">
+<meta property="article:author" content="小林绿子">
+<meta property="article:tag" content="algorithm">
+<meta property="article:tag" content="leetcode">
+<meta property="article:tag" content="os">
+<meta property="article:tag" content="cache">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mylvzi.github.io/images/avatar.png"><meta name="twitter:title" content="从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计">
+  
+  
+  <meta name="keywords" content="algorithm,leetcode,os,cache">
+
+  <!-- feed -->
+  
+    
+
+    
+      
+        <link rel="alternate" href="/atom.xml" title="小林绿子的博客" type="application/atom+xml">
+      
+    
+  
+
+  <link rel="preload" href="/css/main.css?v=1.41.0" as="style">
+  <link rel="stylesheet" href="/css/main.css?v=1.41.0">
+
+
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+
+  
+
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"小林绿子","sameAs":[],"image":"https://mylvzi.github.io/images/avatar.png"},"dateCreated":"2026-04-27T00:00:00+00:00","dateModified":"2026-08-16T14:45:15+00:00","datePublished":"2026-04-27T00:00:00+00:00","description":"今天翻到《操作系统导论》（Operating Systems: Three Easy Pieces）里讲页面置换的那一章，忽然觉得书上的理论与 LeetCode 上的题目产生了奇妙的联结。虚拟内存管理中的“该换出哪一页”，和工程中随处可见的缓存淘汰策略，本质上在问同一个问题：如何用有限的空间，接住未来无限且不可预知的访问序列？ 有没有想到 CPU 调度算法的 MLFQ?\n一点背景：页交换与局...","headline":"从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计","mainEntityOfPage":{"@type":"WebPage","@id":"https://mylvzi.github.io/2026/04/27/lru-lfu-cache-design/"},"publisher":{"@type":"Organization","name":"小林绿子","sameAs":[],"image":"https://mylvzi.github.io/images/avatar.png","logo":{"@type":"ImageObject","url":"https://mylvzi.github.io/images/avatar.png"}},"url":"https://mylvzi.github.io/2026/04/27/lru-lfu-cache-design/","keywords":"algorithm, leetcode, os, cache","thumbnailUrl":"https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg","image":["https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg"]}</script>
+  <link rel="shortcut icon" href="/favicon.png"><meta name="theme-color" content="#f8f8f8"><link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.2/css/all.css" rel="stylesheet"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css"><link rel="stylesheet" href="/css/theme-toggle.css"><link rel="stylesheet" href="/css/archive-timeline.css"><script>(function(){document.documentElement.setAttribute('data-theme','light');document.documentElement.style.colorScheme='light';})();</script>
+
+  <!-- icons.yml 驱动的 CSS 装饰图标 -->
+  
+  
+  <style>:root {
+  --icon-h3-left: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2024%2024%22%3E%3C!--%20Icon%20from%20Solar%20by%20480%20Design%20-%20https%3A%2F%2Fcreativecommons.org%2Flicenses%2Fby%2F4.0%2F%20--%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M17.75%2019a.75.75%200%200%201-1.32.488l-6-7a.75.75%200%200%201%200-.976l6-7A.75.75%200%200%201%2017.75%205z%22%20opacity%3D%22.5%22%2F%3E%3Cpath%20fill%3D%22currentColor%22%20fill-rule%3D%22evenodd%22%20d%3D%22M13.488%2019.57a.75.75%200%200%200%20.081-1.058L7.988%2012l5.581-6.512a.75.75%200%201%200-1.138-.976l-6%207a.75.75%200%200%200%200%20.976l6%207a.75.75%200%200%200%201.057.082%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");
+  --icon-h3-right: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2024%2024%22%3E%3C!--%20Icon%20from%20Solar%20by%20480%20Design%20-%20https%3A%2F%2Fcreativecommons.org%2Flicenses%2Fby%2F4.0%2F%20--%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M6.25%2019a.75.75%200%200%200%201.32.488l6-7a.75.75%200%200%200%200-.976l-6-7A.75.75%200%200%200%206.25%205z%22%20opacity%3D%22.5%22%2F%3E%3Cpath%20fill%3D%22currentColor%22%20fill-rule%3D%22evenodd%22%20d%3D%22M10.512%2019.57a.75.75%200%200%201-.081-1.058L16.012%2012l-5.581-6.512a.75.75%200%201%201%201.139-.976l6%207a.75.75%200%200%201%200%20.976l-6%207a.75.75%200%200%201-1.058.082%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");
+  --icon-quote-left: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2024%2024%22%3E%3C!--%20Icon%20from%20BoxIcons%20Solid%20by%20Atisa%20-%20https%3A%2F%2Fcreativecommons.org%2Flicenses%2Fby%2F4.0%2F%20--%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M3.691%206.292C5.094%204.771%207.217%204%2010%204h1v2.819l-.804.161c-1.37.274-2.323.813-2.833%201.604A2.9%202.9%200%200%200%206.925%2010H10a1%201%200%200%201%201%201v7c0%201.103-.897%202-2%202H3a1%201%200%200%201-1-1v-5l.003-2.919c-.009-.111-.199-2.741%201.688-4.789M20%2020h-6a1%201%200%200%201-1-1v-5l.003-2.919c-.009-.111-.199-2.741%201.688-4.789C16.094%204.771%2018.217%204%2021%204h1v2.819l-.804.161c-1.37.274-2.323.813-2.833%201.604A2.9%202.9%200%200%200%2017.925%2010H21a1%201%200%200%201%201%201v7c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E");
+  --icon-quote-right: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2024%2024%22%3E%3C!--%20Icon%20from%20BoxIcons%20Solid%20by%20Atisa%20-%20https%3A%2F%2Fcreativecommons.org%2Flicenses%2Fby%2F4.0%2F%20--%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M20.309%2017.708C22.196%2015.66%2022.006%2013.03%2022%2013V5a1%201%200%200%200-1-1h-6c-1.103%200-2%20.897-2%202v7a1%201%200%200%200%201%201h3.078a2.9%202.9%200%200%201-.429%201.396c-.508.801-1.465%201.348-2.846%201.624l-.803.16V20h1c2.783%200%204.906-.771%206.309-2.292m-11.007%200C11.19%2015.66%2010.999%2013.03%2010.993%2013V5a1%201%200%200%200-1-1h-6c-1.103%200-2%20.897-2%202v7a1%201%200%200%200%201%201h3.078a2.9%202.9%200%200%201-.429%201.396c-.508.801-1.465%201.348-2.846%201.624l-.803.16V20h1c2.783%200%204.906-.771%206.309-2.292%22%2F%3E%3C%2Fsvg%3E");
+}</style>
+  
+</head>
+<body><div id="l_cover"></div><div class="l_body content" id="start" layout="post" type="tech" ><aside class="l_left leftbar-card"><div class="sidebg"></div><div class="leftbar-container">
+
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg"></div><img no-lazy class="avatar" src="/images/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main">小林绿子的博客</div><div class="sub normal cap">斯多葛主义践行者</div><div class="sub hover cap" style="opacity:0"> 篮球 | FPS | 写作</div></a></div></header>
+
+
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+<div class="widgets">
+<svg class="grad-def" width="0" height="0" aria-hidden="true" focusable="false"><defs><linearGradient id="leftbar-active-icon-grad" x1="75%" y1="6.7%" x2="6.7%" y2="125%"><stop offset="20%" style="stop-color:var(--item-theme-light)"/><stop offset="60%" style="stop-color:var(--item-theme)"/></linearGradient></defs></svg>
+<div class="nav-area">
+
+<nav class="menu dis-select"></nav>
+</div>
+
+
+<widget class="widget-wrapper slide-up recent post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2026/03/30/binary-search-boundaries/"><span class="title">二分查找算法系列-概念讲解-应用场景-大量例题讲解</span></a><a class="item title" href="/2026/04/27/lru-lfu-cache-design/"><span class="title">从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计</span></a><a class="item title" href="/2026/04/29/recursion-intuition/"><span class="title">递归入门：如何理解递归与经典题目解析</span></a><a class="item title" href="/reading/2026-05-28/"><span class="title">2026-5-28</span></a><a class="item title" href="/reading/2026-05-29/"><span class="title">2026-5-29</span></a><a class="item title" href="/reading/2026-06-01/"><span class="title">2026-6-1</span></a><a class="item title" href="/reading/2026-06-09/"><span class="title">2026-6-9</span></a><a class="item title" href="/reading/2026-06-10/"><span class="title">2026-6-10</span></a><a class="item title" href="/reading/2026-06-12/"><span class="title">2026-6-12</span></a><a class="item title" href="/reading/2026-06-16/"><span class="title">2026-6-16</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+
+<div class="article-banner-wrap slide-up"><div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2026-04-27T00:00:00.000Z">2026-04-27</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2026-08-16T14:45:15.904Z">2026-08-16</time></span></div>
+</div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>从页面置换策略到 LeetCode：LRU 与 LFU 缓存的设计</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div></div>
+<article class="md-text content slide-up"><p>今天翻到《操作系统导论》（Operating Systems: Three Easy Pieces）里讲页面置换的那一章，忽然觉得书上的理论与 LeetCode 上的题目产生了奇妙的联结。虚拟内存管理中的“该换出哪一页”，和工程中随处可见的缓存淘汰策略，本质上在问同一个问题：<strong>如何用有限的空间，接住未来无限且不可预知的访问序列？</strong> 有没有想到 CPU 调度算法的 MLFQ?</p>
+<h2 id="一点背景：页交换与局部性"><a href="#一点背景：页交换与局部性" class="headerlink" title="一点背景：页交换与局部性"></a>一点背景：页交换与局部性</h2><p>操作系统在虚拟内存中为每个进程维护一个<strong>页表</strong>。进程看到的是一个巨大的虚拟地址空间, 虚拟地址空间的页称为 <strong>VPN（Virtual Page Number）</strong>，物理内存中的页帧则称为 <strong>PPN（Physical Page Number）</strong>。物理内存是所有进程的公共资源，当物理内存吃紧时(缺页异常Page Fault)，操作系统必须挑选一些物理页帧写回磁盘，把腾出来的帧分给急需的进程。这个动作叫做<strong>页交换</strong>，挑选牺牲帧的策略就是<strong>页面置换算法</strong>。</p>
+<p>为什么置换策略能工作？答案藏在<strong>局部性原理</strong>里。书中用两句话概括：</p>
+<ul>
+<li><strong>时间局部性</strong>：最近被访问的页面，很可能在不久的将来再次被访问。</li>
+<li><strong>空间局部性</strong>：被访问页面附近的页面，很可能马上也会被访问。</li>
+</ul>
+<p>理论上，最优置换算法是：淘汰未来最晚才会被访问的页面。这个策略能最大化未来的缓存命中率。但问题是，操作系统无法预知未来。所以现实系统只能基于历史访问记录做预测。</p>
+<p>历史经验大致有两个维度：</p>
+<ul>
+<li>第一，近期性。越是最近被访问过的页面，越可能很快再次被访问。</li>
+<li>第二，频率。越是经常被访问的页面，越可能继续被访问。</li>
+</ul>
+<p>LRU 利用的是近期性，LFU 利用的是频率。二者都是局部性原理在缓存管理中的具体体现。</p>
+<hr>
+<h2 id="一、LRU：最近最少使用"><a href="#一、LRU：最近最少使用" class="headerlink" title="一、LRU：最近最少使用"></a>一、LRU：最近最少使用</h2><p>LRU，全称 Least Recently Used，意思是淘汰最近最少使用的元素。</p>
+<p>它的核心假设是：</p>
+<blockquote>
+<p>最近访问过的数据，更有可能在不久之后再次被访问。</p>
+</blockquote>
+<p>这实际上对应了局部性原理中的时间局部性。程序运行时，经常会在一段时间内反复访问同一批地址。例如循环、函数调用栈、热点对象、缓存行等，都会体现这种局部性。</p>
+<p>在 LeetCode 的 LRU Cache 中，需要支持两个操作：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">get(key)</span><br><span class="line">put(key, value)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>并且要求平均时间复杂度为 <code>O(1)</code>。</p>
+<p>这个要求直接决定了数据结构设计。</p>
+<p>单用数组或链表不行，因为查找 key 需要 <code>O(n)</code>。</p>
+<p>单用 HashMap 也不行，因为它只能快速找到元素，不能快速知道谁是最近最少使用的元素。</p>
+<p>所以需要组合数据结构：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HashMap + 双向链表</span><br></pre></td></tr></tbody></table></figure>
+
+<p>HashMap 负责根据 key 快速定位节点。</p>
+<p>双向链表负责维护访问顺序。</p>
+<p>链表头部表示最近使用，链表尾部表示最久未使用。每次访问一个节点，就把它移动到链表头部。每次缓存满了，就删除链表尾部的节点。</p>
+<hr>
+<h2 id="二、LRU-的节点设计"><a href="#二、LRU-的节点设计" class="headerlink" title="二、LRU 的节点设计"></a>二、LRU 的节点设计</h2><p>代码中的节点如下：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ListNode</span> {</span><br><span class="line">    <span class="type">int</span> key, val;</span><br><span class="line">    ListNode prev;</span><br><span class="line">    ListNode next;</span><br><span class="line"></span><br><span class="line">    ListNode(<span class="type">int</span> key, <span class="type">int</span> val) {</span><br><span class="line">        <span class="built_in">this</span>.key = key;</span><br><span class="line">        <span class="built_in">this</span>.val = val;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里必须同时保存 <code>key</code> 和 <code>val</code>。</p>
+<p>保存 <code>val</code> 是为了返回缓存值。</p>
+<p>保存 <code>key</code> 是为了在删除链表节点时，能够同步从 HashMap 中删除对应映射。</p>
+<p>如果节点里没有 <code>key</code>，当我们从链表尾部删除 LRU 节点时，就不知道应该从 HashMap 里删掉哪个 entry。</p>
+<p>这就是为什么缓存节点不只是 value，而是完整的 key-value entry。</p>
+<hr>
+<h2 id="三、为什么使用双向链表"><a href="#三、为什么使用双向链表" class="headerlink" title="三、为什么使用双向链表"></a>三、为什么使用双向链表</h2><p>LRU 的关键操作有两个：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 把某个节点移动到头部</span><br><span class="line">2. 删除尾部节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果使用单向链表，删除某个节点时需要知道它的前驱节点，否则无法在 <code>O(1)</code> 时间内完成删除。</p>
+<p>双向链表的节点保存了 <code>prev</code> 和 <code>next</code>，因此可以直接断开当前节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(ListNode node)</span> {</span><br><span class="line">    hash.remove(node.key);</span><br><span class="line"></span><br><span class="line">    node.prev.next = node.next;</span><br><span class="line">    node.next.prev = node.prev;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这一步就是把节点从链表中摘除，同时从 HashMap 中删除。</p>
+<p>然后再把它插入到链表头部：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(ListNode node)</span> {</span><br><span class="line">    hash.put(node.key, node);</span><br><span class="line"></span><br><span class="line">    node.next = dummyHead.next;</span><br><span class="line">    dummyHead.next.prev = node;</span><br><span class="line"></span><br><span class="line">    dummyHead.next = node;</span><br><span class="line">    node.prev = dummyHead;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这样，访问过的节点就会被标记为最近使用。</p>
+<hr>
+<h2 id="四、虚拟头尾节点的作用"><a href="#四、虚拟头尾节点的作用" class="headerlink" title="四、虚拟头尾节点的作用"></a>四、虚拟头尾节点的作用</h2><p>代码里使用了两个哨兵节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">dummyHead = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">dummyTail = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">dummyHead.next = dummyTail;</span><br><span class="line">dummyTail.prev = dummyHead;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这两个节点不存储真实数据，只是为了简化边界条件。</p>
+<p>有了 dummyHead 和 dummyTail 之后，插入和删除逻辑就不需要额外判断：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">链表是否为空</span><br><span class="line">删除的是不是头节点</span><br><span class="line">删除的是不是尾节点</span><br><span class="line">插入时是否只有一个节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>真实节点永远位于：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dummyHead &lt;-&gt; real nodes &lt;-&gt; dummyTail</span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以最近使用的节点是：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dummyHead.next</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最久未使用的节点是：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dummyTail.prev</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当缓存满了时，直接删除：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">remove(dummyTail.prev);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这就是 LRU 的置换动作。</p>
+<hr>
+<h2 id="五、LRU-的-get-与-put"><a href="#五、LRU-的-get-与-put" class="headerlink" title="五、LRU 的 get 与 put"></a>五、LRU 的 get 与 put</h2><p><code>get</code> 操作分两种情况。</p>
+<p>如果 key 不存在，说明缓存未命中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!hash.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果 key 存在，说明缓存命中。此时不仅要返回 value，还要更新访问顺序：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ListNode</span> <span class="variable">node</span> <span class="operator">=</span> hash.get(key);</span><br><span class="line">remove(node);</span><br><span class="line">insertInToFront(node);</span><br><span class="line"><span class="keyword">return</span> node.val;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里的“移动到头部”，在 OS 语境下可以理解为：这个页刚刚被访问过，因此它不应该成为近期被淘汰的对象。</p>
+<p><code>put</code> 操作也分几种情况。</p>
+<p>如果 key 已经存在，先删除旧节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(hash.containsKey(key))</span><br><span class="line">    remove(hash.get(key));</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果缓存容量已满，则删除尾部节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(hash.size() == capacity)</span><br><span class="line">    remove(dummyTail.prev);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后把新节点插入头部：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insertInToFront(<span class="keyword">new</span> <span class="title class_">ListNode</span>(key, value));</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个设计保证了 <code>get</code> 和 <code>put</code> 的平均时间复杂度都是 <code>O(1)</code>。</p>
+<hr>
+<h2 id="六、LRU-与操作系统中的页面置换"><a href="#六、LRU-与操作系统中的页面置换" class="headerlink" title="六、LRU 与操作系统中的页面置换"></a>六、LRU 与操作系统中的页面置换</h2><p>从概念上看，LRU 很适合作为页面置换策略。</p>
+<p>如果一个页面很久没有被访问，那么它将来被访问的概率可能较低。淘汰它，看上去是合理的。</p>
+<p>但实际操作系统中，严格 LRU 并不常用。</p>
+<p>原因很简单：维护精确的 LRU 成本太高。</p>
+<p>每次内存访问都要更新链表位置，这意味着操作系统需要对每个页面访问维护复杂的数据结构。对于真实系统来说，这个开销不可接受。</p>
+<p>《操作系统导论》中讲到的 Clock Algorithm，也就是时钟算法，就是对 LRU 的一种近似实现。它不维护完整的访问顺序，而是在页表项或页框元数据中维护一个 use bit，也就是使用位。</p>
+<p>当页面被访问时，硬件或操作系统会把 use bit 置为 1。置换时，操作系统像时钟指针一样扫描页面：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">如果 use bit = 1，则清零并跳过</span><br><span class="line">如果 use bit = 0，则选择该页淘汰</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这不是精确 LRU，但它利用了类似的思想：最近被访问过的页面，会获得一次“续命”机会。</p>
+<p>所以，LeetCode 中的 LRU 是一种算法题里的理想化实现，而操作系统中的页面置换则更关注实现成本和硬件协作。</p>
+<hr>
+<h2 id="七、LFU：最不经常使用"><a href="#七、LFU：最不经常使用" class="headerlink" title="七、LFU：最不经常使用"></a>七、LFU：最不经常使用</h2><p>LFU，全称 Least Frequently Used，意思是淘汰访问频率最低的元素。</p>
+<p>它的核心假设是：</p>
+<blockquote>
+<p>历史上被访问次数越多的数据，将来继续被访问的可能性越高。</p>
+</blockquote>
+<p>这和 LRU 不同。</p>
+<p>LRU 看的是“最近有没有访问”。</p>
+<p>LFU 看的是“总共访问了多少次”。</p>
+<p>举个简单例子：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">容量 = 2</span><br><span class="line"></span><br><span class="line">访问序列：</span><br><span class="line">put(1)</span><br><span class="line">get(1)</span><br><span class="line">get(1)</span><br><span class="line">put(2)</span><br><span class="line">put(3)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>此时 key = 1 的访问频率最高，key = 2 的访问频率最低。</p>
+<p>如果要插入 key = 3，LFU 会淘汰 key = 2。</p>
+<p>这说明 LFU 更偏向长期热点数据。</p>
+<hr>
+<h2 id="八、LFU-的难点：频率相同时怎么办"><a href="#八、LFU-的难点：频率相同时怎么办" class="headerlink" title="八、LFU 的难点：频率相同时怎么办"></a>八、LFU 的难点：频率相同时怎么办</h2><p>LFU 的核心问题不是“谁频率最低”，而是：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">多个 key 的频率相同，应该删谁？</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LeetCode 题目要求：当频率相同时，淘汰最近最少使用的那个。</p>
+<p>也就是说，LFU 内部还要嵌套 LRU。</p>
+<p>整体策略是：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先按频率淘汰</span><br><span class="line">频率相同，再按最近使用时间淘汰</span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以 LFU 的数据结构比 LRU 更复杂。</p>
+<p>代码中使用了两个 HashMap：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;Integer, Node&gt; hash1; </span><br><span class="line">Map&lt;Integer, DoublyLinkedList&gt; hash2;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hash1: key -&gt; Node</span><br><span class="line">hash2: freq -&gt; DoublyLinkedList</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>hash1</code> 用来根据 key 在 <code>O(1)</code> 时间内找到节点。</p>
+<p><code>hash2</code> 用来根据访问频率找到对应的频率桶。</p>
+<p>每一个频率桶内部是一条双向链表，用来维护相同频率下的 LRU 顺序。</p>
+<hr>
+<h2 id="九、LFU-的节点设计"><a href="#九、LFU-的节点设计" class="headerlink" title="九、LFU 的节点设计"></a>九、LFU 的节点设计</h2><p>LFU 的节点比 LRU 多了一个 <code>freq</code> 字段：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Node</span> {</span><br><span class="line">    <span class="type">int</span> key, val, freq;</span><br><span class="line">    Node prev, next;</span><br><span class="line"></span><br><span class="line">    Node(<span class="type">int</span> key, <span class="type">int</span> val, <span class="type">int</span> freq) {</span><br><span class="line">        <span class="built_in">this</span>.key = key;</span><br><span class="line">        <span class="built_in">this</span>.val = val;</span><br><span class="line">        <span class="built_in">this</span>.freq = freq;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其中：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">key: 缓存键</span><br><span class="line">val: 缓存值</span><br><span class="line">freq: 当前访问频率</span><br><span class="line">prev / next: 双向链表指针</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每次 <code>get</code> 一个 key，或者 <code>put</code> 更新已有 key，都要增加该节点的访问频率。</p>
+<p>这意味着节点需要从旧频率桶中删除，再插入到新频率桶中。</p>
+<p>例如，一个节点当前 <code>freq = 2</code>，访问一次后变成 <code>freq = 3</code>：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">freq = 2 的链表中删除该节点</span><br><span class="line">freq = 3 的链表头部插入该节点</span><br></pre></td></tr></tbody></table></figure>
+
+<p>插入头部表示：在当前这个频率下，它是最近使用的节点。</p>
+<hr>
+<h2 id="十、LFU-的频率桶"><a href="#十、LFU-的频率桶" class="headerlink" title="十、LFU 的频率桶"></a>十、LFU 的频率桶</h2><p>代码中定义了一个内部双向链表类：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DoublyLinkedList</span> {</span><br><span class="line">    <span class="type">Node</span> <span class="variable">dummyHead</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">    <span class="type">Node</span> <span class="variable">dummyTail</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">    <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    DoublyLinkedList() {</span><br><span class="line">        dummyHead.next = dummyTail;</span><br><span class="line">        dummyTail.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(Node node)</span> {</span><br><span class="line">        node.prev.next = node.next;</span><br><span class="line">        node.next.prev = node.prev;</span><br><span class="line">        size--;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(Node node)</span> {</span><br><span class="line">        node.next = dummyHead.next;</span><br><span class="line">        node.next.prev = node;</span><br><span class="line">        dummyHead.next = node;</span><br><span class="line">        node.prev = dummyHead;</span><br><span class="line">        size++;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isEmpty</span><span class="params">()</span> { </span><br><span class="line">        <span class="keyword">return</span> size == <span class="number">0</span>; </span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每个频率对应一条双向链表。</p>
+<p>可以把整个 LFU 结构理解为：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">freq = 1: head &lt;-&gt; nodeA &lt;-&gt; nodeB &lt;-&gt; tail</span><br><span class="line">freq = 2: head &lt;-&gt; nodeC &lt;-&gt; nodeD &lt;-&gt; tail</span><br><span class="line">freq = 3: head &lt;-&gt; nodeE &lt;-&gt; tail</span><br></pre></td></tr></tbody></table></figure>
+
+<p>每条链表内部，越靠近头部，表示越近被访问。</p>
+<p>越靠近尾部，表示在当前频率下越久没有被访问。</p>
+<p>淘汰时，先找到最小频率 <code>minFreq</code>，再删除该频率链表尾部的节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line"><span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">minFreqList.remove(toDeleteNode);</span><br><span class="line">hash1.remove(toDeleteNode.key);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这正好实现了：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">先 LFU，再 LRU</span><br></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2 id="十一、minFreq-的作用"><a href="#十一、minFreq-的作用" class="headerlink" title="十一、minFreq 的作用"></a>十一、minFreq 的作用</h2><p>LFU 中还有一个关键变量：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> minFreq;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>它记录当前缓存中最小的访问频率。</p>
+<p>如果没有 <code>minFreq</code>，每次淘汰时就需要遍历所有频率桶，找到最小频率。这样复杂度就不是 <code>O(1)</code> 了。</p>
+<p>有了 <code>minFreq</code>，淘汰时可以直接定位最低频率桶：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当一个节点被访问后，它的频率增加。此时需要考虑：如果它原来所在的频率桶空了，并且这个频率刚好是 <code>minFreq</code>，那么 <code>minFreq</code> 就应该增加。</p>
+<p>代码如下：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">    minFreq++;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>新插入节点的频率一定是 1，所以插入新节点后：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">minFreq = <span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个变量是 LFU 能够做到 <code>O(1)</code> 淘汰的关键。</p>
+<hr>
+<h2 id="十二、LFU-的-get-与-put"><a href="#十二、LFU-的-get-与-put" class="headerlink" title="十二、LFU 的 get 与 put"></a>十二、LFU 的 get 与 put</h2><p><code>get</code> 操作比较直接。</p>
+<p>如果 key 不存在，返回 -1：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!hash1.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果 key 存在，更新频率：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">updateNode(node);</span><br><span class="line"><span class="keyword">return</span> node.val;</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>updateNode</code> 是 LFU 的核心逻辑：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">updateNode</span><span class="params">(Node node)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">curFreq</span> <span class="operator">=</span> node.freq++;</span><br><span class="line">    <span class="type">DoublyLinkedList</span> <span class="variable">curList</span> <span class="operator">=</span> hash2.get(curFreq);</span><br><span class="line">    curList.remove(node);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">        minFreq++;</span><br><span class="line"></span><br><span class="line">    hash2.computeIfAbsent(node.freq, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>())</span><br><span class="line">         .insertInToFront(node);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个函数做了三件事：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 从旧频率桶中删除节点</span><br><span class="line">2. 更新 minFreq</span><br><span class="line">3. 把节点插入新频率桶头部</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>put</code> 操作分三种情况。</p>
+<p>第一，容量为 0，直接返回：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (capacity == <span class="number">0</span>) <span class="keyword">return</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第二，key 已经存在，更新值并增加频率：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (hash1.containsKey(key)) {</span><br><span class="line">    <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">    node.val = value;</span><br><span class="line">    updateNode(node);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第三，key 不存在。如果缓存已满，则执行置换：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (hash1.size() &gt;= capacity) {</span><br><span class="line">    <span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line">    <span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">    minFreqList.remove(toDeleteNode);</span><br><span class="line">    hash1.remove(toDeleteNode.key);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后插入新节点：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(key, value, <span class="number">1</span>);</span><br><span class="line">hash1.put(key, node);</span><br><span class="line">hash2.computeIfAbsent(<span class="number">1</span>, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">minFreq = <span class="number">1</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最终，LFU 的 <code>get</code> 和 <code>put</code> 也能做到平均 <code>O(1)</code>。</p>
+<hr>
+<h2 id="十三、LRU-与-LFU-的对比"><a href="#十三、LRU-与-LFU-的对比" class="headerlink" title="十三、LRU 与 LFU 的对比"></a>十三、LRU 与 LFU 的对比</h2><p>LRU 和 LFU 都是在尝试回答同一个问题：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">缓存满了，应该淘汰谁？</span><br></pre></td></tr></tbody></table></figure>
+
+<p>但二者使用的历史信息不同。</p>
+<p>LRU 使用近期性：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">最近没有被访问的，优先淘汰。</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LFU 使用频率：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">访问次数最少的，优先淘汰。</span><br></pre></td></tr></tbody></table></figure>
+
+<p>LRU 的优点是实现相对简单，对访问模式变化比较敏感。新的热点数据只要被频繁访问，就会不断移动到链表头部，不容易被淘汰。</p>
+<p>LRU 的缺点是容易受到一次性扫描污染。</p>
+<p>例如顺序扫描大量冷数据时，真正的热点数据可能会被挤出缓存。</p>
+<p>LFU 的优点是能保留长期热点数据。访问频率高的数据即使一段时间没被访问，也不容易被淘汰。</p>
+<p>LFU 的缺点是对历史频率过于敏感。一个数据过去很热，但现在已经不再使用，它仍然可能因为频率很高而长期占据缓存。</p>
+<p>所以，LRU 偏向“最近趋势”，LFU 偏向“长期统计”。</p>
+<p>在实际系统中，缓存策略通常不会采用教科书式的纯 LRU 或纯 LFU，而是做各种近似、衰减和混合。例如操作系统中的 Clock 算法，就是对 LRU 思想的低成本近似。</p>
+<hr>
+<p><em>本文代码对应 LeetCode 146. LRU 缓存和 460. LFU 缓存。参考书目：《操作系统导论》（Operating Systems: Three Easy Pieces）第 22 章“超越物理内存：策略”。</em></p>
+<p>附录:<br>LRU 算法代码, 链接: <a target="_blank" rel="noopener" href="https://leetcode.cn/problems/lru-cache/">146. LRU 缓存 - 力扣（LeetCode）</a></p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LRUCache</span> {</span><br><span class="line">    <span class="comment">// 虚拟内存的知识</span></span><br><span class="line">    <span class="comment">// 超越物理内存-页交换策略算法的一种-关键在于如何选择已存在的页进行交换-交换后，缓存命中的概率最大</span></span><br><span class="line">    <span class="comment">// 最优的算法：替换"最远将来被访问的页面"    </span></span><br><span class="line">    <span class="comment">// LRU:Least-Recently Used  最近最少使用  也是页交换策略的一种  利用了局部性原理</span></span><br><span class="line">    <span class="comment">// 计算机界的二八原则</span></span><br><span class="line">    <span class="comment">// 关键在于使用什么样的数据结构去实现LRU:考虑页的两种历史经验</span></span><br><span class="line">    <span class="comment">// 1.频率:越是经常被访问的,越是下次最可能被访问</span></span><br><span class="line">    <span class="comment">// 2.近期性: 越是最近被访问的,越是下次最可能被访问</span></span><br><span class="line">    <span class="comment">// 对于LRU,本质是利用了"近期性"这个历史经验, LFU(Least-Frequency-Used)则是利用了"频率"这个页面的历史经验</span></span><br><span class="line">    <span class="comment">// 本质上来说,也是一种缓存管理的策略; 缓存是什么意思呢:内存中的页是整个虚拟页的子集(有部分存储在磁盘之中)</span></span><br><span class="line">    <span class="comment">// 实际上,在os中并不会使用这种数据结构(因为还要额外维护一个双向链表)</span></span><br><span class="line">    <span class="comment">// os中会使用"闹钟算法",在PFE中维护一个"使用位"use bit</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// hash: 根据key快速找到value</span></span><br><span class="line">    <span class="comment">// 双向链表: 快速找到"LRU"的页</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用双向链表表示一个缓存(页)</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">ListNode</span> {</span><br><span class="line">        <span class="type">int</span> key, val;</span><br><span class="line">        ListNode prev;</span><br><span class="line">        ListNode next;</span><br><span class="line"></span><br><span class="line">        ListNode(<span class="type">int</span> key, <span class="type">int</span> val) {</span><br><span class="line">            <span class="built_in">this</span>.key = key; <span class="comment">// VPN:Virtual Page Number</span></span><br><span class="line">            <span class="built_in">this</span>.val = val;<span class="comment">// PPN: Physical Page Number</span></span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用哈希表管理所有的页</span></span><br><span class="line">    Map&lt;Integer, ListNode&gt; hash;</span><br><span class="line">    ListNode dummyHead;</span><br><span class="line">    ListNode dummyTail;</span><br><span class="line">    <span class="type">int</span> capacity;</span><br><span class="line"></span><br><span class="line">    <span class="type">public</span> <span class="title function_">LRUCache</span><span class="params">(<span class="type">int</span> capacity)</span> {</span><br><span class="line">        <span class="built_in">this</span>.capacity = capacity;</span><br><span class="line">        hash = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        dummyHead = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">        dummyTail = <span class="keyword">new</span> <span class="title class_">ListNode</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        dummyHead.next = dummyTail;</span><br><span class="line">        dummyTail.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> {</span><br><span class="line">        <span class="comment">// 缓存未命中</span></span><br><span class="line">        <span class="keyword">if</span>(!hash.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>; <span class="comment">// swap page --&gt; 重新put</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 缓存命中</span></span><br><span class="line">        <span class="type">ListNode</span> <span class="variable">node</span> <span class="operator">=</span> hash.get(key);</span><br><span class="line">        <span class="comment">// 标记为"最常访问的"</span></span><br><span class="line">        remove(node);</span><br><span class="line">        insertInToFront(node); <span class="comment">// 标记为最常访问</span></span><br><span class="line">        <span class="keyword">return</span> node.val;</span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加入新的缓存</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="comment">// 已经存在</span></span><br><span class="line">        <span class="keyword">if</span>(hash.containsKey(key))</span><br><span class="line">            remove(hash.get(key));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 缓存不存在,但是内存不足,需要执行页交换策略,删除最近最少使用</span></span><br><span class="line">        <span class="keyword">if</span>(hash.size() == capacity)</span><br><span class="line">            remove(dummyTail.prev);</span><br><span class="line">        insertInToFront(<span class="keyword">new</span> <span class="title class_">ListNode</span>(key, value));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(ListNode node)</span> {</span><br><span class="line">        hash.remove(node.key);</span><br><span class="line"></span><br><span class="line">        node.prev.next = node.next;</span><br><span class="line">        node.next.prev = node.prev;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(ListNode node)</span> {</span><br><span class="line">        hash.put(node.key, node);</span><br><span class="line"></span><br><span class="line">        node.next = dummyHead.next;</span><br><span class="line">        dummyHead.next.prev = node;</span><br><span class="line"></span><br><span class="line">        dummyHead.next = node;</span><br><span class="line">        node.prev = dummyHead;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Your LRUCache object will be instantiated and called as such:</span></span><br><span class="line"><span class="comment"> * LRUCache obj = new LRUCache(capacity);</span></span><br><span class="line"><span class="comment"> * int param_1 = obj.get(key);</span></span><br><span class="line"><span class="comment"> * obj.put(key,value);</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>LFU 代码,链接: <a target="_blank" rel="noopener" href="https://leetcode.cn/problems/lfu-cache/">460. LFU 缓存 - 力扣（LeetCode）</a></p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LFUCache</span> {</span><br><span class="line">    <span class="comment">// LFU: Frequency 局部性</span></span><br><span class="line">    <span class="comment">// 关键在于:当两个VPN的freq相同时,就退化为LRU</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 表示每个映射</span></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Node</span> {</span><br><span class="line">        <span class="type">int</span> key, val, freq;</span><br><span class="line">        Node prev, next;</span><br><span class="line"></span><br><span class="line">        Node(<span class="type">int</span> key, <span class="type">int</span> val, <span class="type">int</span> freq) {</span><br><span class="line">            <span class="built_in">this</span>.key = key;</span><br><span class="line">            <span class="built_in">this</span>.val = val;</span><br><span class="line">            <span class="built_in">this</span>.freq = freq;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">DoublyLinkedList</span> {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">dummyHead</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">dummyTail</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="number">0</span>, <span class="number">0</span>, -<span class="number">1</span>);</span><br><span class="line">        <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        DoublyLinkedList() {</span><br><span class="line">            dummyHead.next = dummyTail;</span><br><span class="line">            dummyTail.prev = dummyHead;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">remove</span><span class="params">(Node node)</span> {</span><br><span class="line">            node.prev.next = node.next;</span><br><span class="line">            node.next.prev = node.prev;</span><br><span class="line">            size--;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">insertInToFront</span><span class="params">(Node node)</span> {</span><br><span class="line">            node.next = dummyHead.next;</span><br><span class="line">            node.next.prev = node;</span><br><span class="line">            dummyHead.next = node;</span><br><span class="line">            node.prev = dummyHead;</span><br><span class="line">            size++;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isEmpty</span><span class="params">()</span> { <span class="keyword">return</span> size == <span class="number">0</span>; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    Map&lt;Integer, Node&gt; hash1; <span class="comment">// VPN-PPN</span></span><br><span class="line">    Map&lt;Integer, DoublyLinkedList&gt; hash2; <span class="comment">// 频率桶</span></span><br><span class="line">    <span class="type">int</span> capacity, minFreq;</span><br><span class="line"></span><br><span class="line">    <span class="type">public</span> <span class="title function_">LFUCache</span><span class="params">(<span class="type">int</span> capacity)</span> {</span><br><span class="line">        <span class="built_in">this</span>.capacity = capacity;</span><br><span class="line">        <span class="built_in">this</span>.hash1 = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="built_in">this</span>.hash2 = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="built_in">this</span>.minFreq = <span class="number">0</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">get</span><span class="params">(<span class="type">int</span> key)</span> {</span><br><span class="line">        <span class="comment">// VPN不存在</span></span><br><span class="line">        <span class="keyword">if</span> (!hash1.containsKey(key)) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// VPN存在,缓存命中 被访问的频率++</span></span><br><span class="line">        <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">        updateNode(node);</span><br><span class="line">        <span class="keyword">return</span> node.val;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="keyword">if</span> (capacity == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果VPN已存在,更新node的频率</span></span><br><span class="line">        <span class="keyword">if</span> (hash1.containsKey(key)) {</span><br><span class="line">            <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> hash1.get(key);</span><br><span class="line">            node.val = value; <span class="comment">// 显式更新值</span></span><br><span class="line">            updateNode(node);</span><br><span class="line">        } <span class="keyword">else</span> {</span><br><span class="line">            <span class="comment">// VPN不存在--&gt;缓存未命中</span></span><br><span class="line">            <span class="keyword">if</span> (hash1.size() &gt;= capacity) {</span><br><span class="line">                <span class="comment">// 置换策略</span></span><br><span class="line">                <span class="type">DoublyLinkedList</span> <span class="variable">minFreqList</span> <span class="operator">=</span> hash2.get(minFreq);</span><br><span class="line">                <span class="type">Node</span> <span class="variable">toDeleteNode</span> <span class="operator">=</span> minFreqList.dummyTail.prev;</span><br><span class="line">                minFreqList.remove(toDeleteNode);</span><br><span class="line">                hash1.remove(toDeleteNode.key);</span><br><span class="line">            }</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 无需置换或已完成置换，插入新节点</span></span><br><span class="line">            <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(key, value, <span class="number">1</span>);</span><br><span class="line">            hash1.put(key, node);</span><br><span class="line">            hash2.computeIfAbsent(<span class="number">1</span>, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">            minFreq = <span class="number">1</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 提取出的公用逻辑：移动到新频率的双向链表中,然后标记为"最近使用"</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">void</span> <span class="title function_">updateNode</span><span class="params">(Node node)</span> {</span><br><span class="line">        <span class="comment">// 1.删除原频率链表对应的元素</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">curFreq</span> <span class="operator">=</span> node.freq++;</span><br><span class="line">        <span class="type">DoublyLinkedList</span> <span class="variable">curList</span> <span class="operator">=</span> hash2.get(curFreq);</span><br><span class="line">        curList.remove(node);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果当前频率是最小频率，且移除后该频率桶空了，则提升最小频率</span></span><br><span class="line">        <span class="keyword">if</span> (curFreq == minFreq &amp;&amp; curList.isEmpty())</span><br><span class="line">            minFreq++;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将当前节点加到新频率的双向链表中,并将此节点放到此双向链表的头部</span></span><br><span class="line">        hash2.computeIfAbsent(node.freq, k -&gt; <span class="keyword">new</span> <span class="title class_">DoublyLinkedList</span>()).insertInToFront(node);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+</article>
+
+<div class="article-tags slide-up"><a class="tag" href="/tags/algorithm/"><svg class="icon" data-icon="default:hashtag" aria-hidden="true"></svg>algorithm</a><a class="tag" href="/tags/leetcode/"><svg class="icon" data-icon="default:hashtag" aria-hidden="true"></svg>leetcode</a><a class="tag" href="/tags/os/"><svg class="icon" data-icon="default:hashtag" aria-hidden="true"></svg>os</a><a class="tag" href="/tags/cache/"><svg class="icon" data-icon="default:hashtag" aria-hidden="true"></svg>cache</a></div>
+
+<div class="article-footer slide-up">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    
+
+
+    <section id="share">
+      <div class="header"><span>分享文章</span></div>
+      <div class="body">
+        <div class="link"><input class="copy-area" readonly="true" id="copy-link" value="https:&#x2F;&#x2F;mylvzi.github.io&#x2F;2026&#x2F;04&#x2F;27&#x2F;lru-lfu-cache-design&#x2F;" /></div>
+        <div class="social-wrap dis-select"><a class="social share-item wechat" onclick="util.toggle(&quot;qrcode-wechat&quot;)"><img class="lazy"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/b32ef3da1162a.svg" /></a><a class="social share-item email" href="mailto:?subject=%E4%BB%8E%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AD%96%E7%95%A5%E5%88%B0%20LeetCode%EF%BC%9ALRU%20%E4%B8%8E%20LFU%20%E7%BC%93%E5%AD%98%E7%9A%84%E8%AE%BE%E8%AE%A1%20-%20%E5%B0%8F%E6%9E%97%E7%BB%BF%E5%AD%90%E7%9A%84%E5%8D%9A%E5%AE%A2&amp;body=https%3A%2F%2Fmylvzi.github.io%2F2026%2F04%2F27%2Flru-lfu-cache-design%2F"><img class="lazy"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/a1b00e20f425d.svg" /></a><a class="social share-item link" onclick="util.copy(&quot;copy-link&quot;, &quot;复制成功&quot;)"><img class="lazy"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/social/8411ed322ced6.svg" /></a></div>
+        
+        <div class="qrcode" id="qrcode-wechat" style="opacity:0;height:0">
+          <img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=https%3A%2F%2Fmylvzi.github.io%2F2026%2F04%2F27%2Flru-lfu-cache-design%2F"/>
+        </div>
+        
+      </div>
+    </section>
+    </div>
+
+<div class="related-wrap slide-up" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2026/04/28/2026-4-28-preFixSum/">前缀和算法系列-概念讲解-应用场景-大量例题讲解</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2026/03/30/binary-search-boundaries/">二分查找算法系列-概念讲解-应用场景-大量例题讲解</a></div></section></div>
+
+
+
+
+  <div class="related-wrap md-text slide-up" id="comments">
+    <section class='header cmt-title cap theme'>
+      <p>快来参与讨论吧~</p>
+
+    </section>
+    <section class='body cmt-body utterances'>
+      
+
+<svg class="icon" data-icon="default:loading" aria-hidden="true"></svg>
+
+<div id="utterances" repo="mylvzi/my-blog" issue-term="pathname" theme="preferred-color-scheme"></div>
+
+    </section>
+  </div>
+
+
+
+<footer class="page-footer slide-up footnote"><hr><div class="text"></div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right"><div class="widgets">
+
+
+
+<widget class="widget-wrapper slide-up toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E7%82%B9%E8%83%8C%E6%99%AF%EF%BC%9A%E9%A1%B5%E4%BA%A4%E6%8D%A2%E4%B8%8E%E5%B1%80%E9%83%A8%E6%80%A7"><span class="toc-text">一点背景：页交换与局部性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81LRU%EF%BC%9A%E6%9C%80%E8%BF%91%E6%9C%80%E5%B0%91%E4%BD%BF%E7%94%A8"><span class="toc-text">一、LRU：最近最少使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81LRU-%E7%9A%84%E8%8A%82%E7%82%B9%E8%AE%BE%E8%AE%A1"><span class="toc-text">二、LRU 的节点设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8"><span class="toc-text">三、为什么使用双向链表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%99%9A%E6%8B%9F%E5%A4%B4%E5%B0%BE%E8%8A%82%E7%82%B9%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-text">四、虚拟头尾节点的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81LRU-%E7%9A%84-get-%E4%B8%8E-put"><span class="toc-text">五、LRU 的 get 与 put</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81LRU-%E4%B8%8E%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2"><span class="toc-text">六、LRU 与操作系统中的页面置换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81LFU%EF%BC%9A%E6%9C%80%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8"><span class="toc-text">七、LFU：最不经常使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81LFU-%E7%9A%84%E9%9A%BE%E7%82%B9%EF%BC%9A%E9%A2%91%E7%8E%87%E7%9B%B8%E5%90%8C%E6%97%B6%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-text">八、LFU 的难点：频率相同时怎么办</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81LFU-%E7%9A%84%E8%8A%82%E7%82%B9%E8%AE%BE%E8%AE%A1"><span class="toc-text">九、LFU 的节点设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81LFU-%E7%9A%84%E9%A2%91%E7%8E%87%E6%A1%B6"><span class="toc-text">十、LFU 的频率桶</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81minFreq-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-text">十一、minFreq 的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81LFU-%E7%9A%84-get-%E4%B8%8E-put"><span class="toc-text">十二、LFU 的 get 与 put</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81LRU-%E4%B8%8E-LFU-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-text">十三、LRU 与 LFU 的对比</span></a></li></ol></div><div class="widget-footer"><a class="top" onclick="util.scrollTop()"><svg class="icon" data-icon="default:upup" aria-hidden="true"></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg class="icon" data-icon="default:tocomment" aria-hidden="true"></svg><span>参与讨论</span></a></div></widget>
+</div></aside><div class='float-panel'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+
+
+<script type="text/javascript">
+  window.canonical = {"originalHost":null,"officialHosts":["localhost"],"encoded":""};
+  window.canonical["param"] = {"permalink":"https://mylvzi.github.io/2026/04/27/lru-lfu-cache-design/","checklink":"/js/plugins/video.js"};
+  // Fix: Ensure page is at the correct top position on data load
+  if (history.scrollRestoration) {
+    history.scrollRestoration = 'auto';
+  }
+  (function() {
+    const scrollHandler = () => {
+      const wikiCover = document.querySelector('#l_cover .l_cover.wiki');
+      const startEl = document.getElementById('start');
+      // 存在有效锚点时，等待布局稳定后滚动到目标
+      // （浏览器原生锚点滚动发生在布局完成前，长文章的懒加载图片/异步组件会把目标顶偏）
+      const hash = window.location.hash;
+      if (hash.length > 1) {
+        let anchorId = hash.slice(1);
+        try {
+          anchorId = decodeURIComponent(anchorId);
+        } catch (e) {
+          // 片段含非法编码时按原样查找
+        }
+        const anchor = document.getElementById(anchorId);
+        if (anchor) {
+          // #start 锚点贴顶，不预留 offset；其余锚点与 TOC 点击滚动保持一致
+          const offset = anchorId === 'start' ? 0 : 32;
+          const targetY = () => anchor.getBoundingClientRect().top + window.scrollY - offset;
+          let timer = null;
+          let lastY = null;
+          let quiet = 0;
+          let attempts = 0;
+          // 记录最近一次资源加载完成时间，判断异步数据/图片是否仍在改变布局
+          let lastResourceTime = performance.now();
+          let observer = null;
+          try {
+            observer = new PerformanceObserver(function (list) {
+              lastResourceTime = performance.now();
+            });
+            observer.observe({ entryTypes: ['resource'] });
+          } catch (e) {}
+          // 统计进行中的 fetch/XHR 请求，异步组件（timeline 等）未完成前不判定布局稳定
+          let pendingRequests = 0;
+          const trackRequest = (fn) => {
+            pendingRequests++;
+            try {
+              const result = fn();
+              if (result && typeof result.finally === 'function') {
+                result.finally(function () {
+                  pendingRequests = Math.max(0, pendingRequests - 1);
+                });
+              } else {
+                pendingRequests = Math.max(0, pendingRequests - 1);
+              }
+              return result;
+            } catch (e) {
+              pendingRequests = Math.max(0, pendingRequests - 1);
+              throw e;
+            }
+          };
+          if (typeof window.fetch === 'function') {
+            const origFetch = window.fetch.bind(window);
+            window.fetch = function () {
+              const args = arguments;
+              return trackRequest(function () {
+                return origFetch.apply(window, args);
+              });
+            };
+          }
+          if (window.XMLHttpRequest) {
+            const origOpen = window.XMLHttpRequest.prototype.open;
+            const origSend = window.XMLHttpRequest.prototype.send;
+            window.XMLHttpRequest.prototype.open = function () {
+              this.__anchorTracked = true;
+              return origOpen.apply(this, arguments);
+            };
+            window.XMLHttpRequest.prototype.send = function () {
+              if (this.__anchorTracked) {
+                pendingRequests++;
+                const done = () => {
+                  if (this.__anchorTracked) {
+                    this.__anchorTracked = false;
+                    pendingRequests = Math.max(0, pendingRequests - 1);
+                  }
+                };
+                this.addEventListener('loadend', done);
+              }
+              return origSend.apply(this, arguments);
+            };
+          }
+          const cancel = () => {
+            if (timer !== null) {
+              clearInterval(timer);
+              timer = null;
+            }
+            if (observer !== null) {
+              try {
+                observer.disconnect();
+              } catch (e) {}
+            }
+          };
+          const adjust = () => {
+            const y = targetY();
+            const atTarget = Math.abs(window.scrollY - y) <= 2;
+            if (!atTarget || lastY === null || Math.abs(y - lastY) > 2) {
+              window.scrollTo({ top: y, behavior: 'instant' });
+              lastY = y;
+              quiet = 0;
+            } else {
+              quiet++;
+            }
+            attempts++;
+            const resourceQuiet = performance.now() - lastResourceTime > 3000;
+            // 位置连续 1.8 秒无变化、无进行中的请求且最近 3 秒无资源加载才视为稳定；最长等待 30 秒
+            if ((quiet >= 3 && pendingRequests === 0 && resourceQuiet) || attempts >= 50) {
+              cancel();
+            }
+          };
+          requestAnimationFrame(() => {
+            // 锚点链接打开时直接定位，不做动画；用户主动点击（如 TOC）仍走平滑滚动
+            window.scrollTo({ top: targetY(), behavior: 'instant' });
+            timer = setInterval(adjust, 600);
+          });
+          // 用户主动滚动时停止自动校正
+          window.addEventListener('wheel', cancel, { passive: true });
+          window.addEventListener('touchstart', cancel, { passive: true });
+          window.addEventListener('mousedown', cancel, { passive: true });
+          window.addEventListener('keydown', cancel, { passive: true });
+          return;
+        }
+      }
+      if (wikiCover && startEl) {
+        window.scrollTo(0, startEl.offsetTop);
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+    if (document.readyState !== 'loading') scrollHandler();
+    else document.addEventListener('DOMContentLoaded', scrollHandler);
+  })();
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+    tag_plugins: {
+      chat: Object.assign({"api":"https://siteinfo.listentothewind.cn/api/v1"}),
+    },
+    // 图标由构建期生成的 /js/stellar-icons.js 填充（defer，早于 DOMContentLoaded 就绪）
+    icons: {},
+    services: {"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":null},"ghinfo":{"js":"/js/services/ghinfo.js"},"rating":{"js":"/js/services/rating.js","api":"https://star-vote.xaox.cc/api/rating"},"vote":{"js":"/js/services/vote.js","api":"https://star-vote.xaox.cc/api/vote"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"friends_and_posts":{"js":"/js/services/friends_and_posts.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"},"voice":{"js":"/js/plugins/voice.js"},"video":{"js":"/js/plugins/video.js"},"download-file":{"js":"/js/plugins/download-file.js"},"twikoo":{"js":"/js/services/twikoo_latest_comment.js"},"waline":{"js":"/js/services/waline_latest_comment.js"},"artalk":{"js":"/js/services/artalk_latest_comment.js"},"giscus":{"js":"/js/services/giscus_latest_comment.js"},"contributors":{"edit_this_page":{"_posts/":null,"wiki/stellar/":"https://github.com/xaoxuu/hexo-theme-stellar-docs/blob/main/"},"js":"/js/services/contributors.js"},"rss":{"js":"/js/services/rss.js"}},
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"lazy_load":true,"cache_ttl":86400,"skip_search":null,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+    loading: `https://api.iconify.design/eos-icons:three-dots-loading.svg?color=%231cd0fd`,
+    data_cache: {"enable":true,"default_ttl":3600,"ttl":{"giscus":600,"waline":600,"artalk":600,"memos":600,"memos-user":86400,"sites":86400,"friends":86400,"friends_and_posts":86400,"siteinfo":86400},"max_entries":200},
+  };
+  const deps = {
+    marked: `https://gcore.jsdelivr.net/npm/marked@13.0/lib/marked.umd.min.js`,
+    lazyload: `https://gcore.jsdelivr.net/npm/vanilla-lazyload@19.1/dist/lazyload.min.js`
+  }
+
+  // 主题切换提示文案（供 /js/theme.js 使用）
+  window.__STELLAR_I18N__ = {
+    light: `切换到浅色模式`,
+    dark: `切换到深色模式`,
+    auto: `切换到跟随系统配色`,
+  };
+
+  // 搜索跳转高亮：URL 带 ?kw= 时按需加载，定位正文中的匹配词
+  (function () {
+    try {
+      if (!window.location.search) return;
+      if (!new URLSearchParams(window.location.search).has('kw')) return;
+      document.addEventListener('DOMContentLoaded', function () {
+        // utils 为全局词法绑定（顶层 const），不能通过 window.utils 访问
+        if (typeof utils === 'object' && typeof utils.js === 'function') {
+          utils.js('/js/search/highlight.js', { defer: true }).catch(function () {});
+        }
+      });
+    } catch (e) {}
+  })();
+</script>
+
+
+<!-- core: utils 必须同步加载（页尾内联插件片段在解析期即调用 utils.initPlugin） -->
+<script src="/js/utils.js?v=1.41.0"></script>
+<script defer src="/js/stellar-icons.js?v=1.41.0"></script>
+<!-- 非首屏图标异步加载：占位符替换依赖构建期生成的 js/icons/{ns}.json -->
+<script defer src="/js/icons.js?v=1.41.0" data-version="1.41.0"></script>
+<script src="/js/main.js?v=1.41.0" defer></script>
+<script defer src="/js/theme.js?v=1.41.0"></script>
+
+
+
+<script>
+  // 先声明配置与初始化监听，再异步加载库：
+  // 保证库执行时 lazyLoadOptions 已就绪，避免 async 脚本抢先执行导致自初始化失败
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+    callback_loaded: (el) => {
+      el.classList.add('loaded');
+      // {% image %} 没有 .lazy-box 包裹，回退到父元素查找加载图标
+      const wrapper = el.closest('.lazy-box') || el.parentElement;
+      const icon = wrapper?.querySelector('.lazy-icon');
+      if (icon) icon.remove();
+    }
+  };
+  // 监听初始化事件，获取 LazyLoad 实例
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+
+  // 兜底：动态插入的 .lazy 元素（如站点自定义脚本在 update() 之后追加的图片）
+  // 不会被 vanilla-lazyload 自动扫描，未注册的 img.lazy 会被 CSS opacity:0 永久隐藏。
+  // MutationObserver 检测到新增 .lazy 元素后自动调用 update() 重新注册。
+  if (window.MutationObserver) {
+    window.lazyMutationObserver = new MutationObserver((mutations) => {
+      if (window.lazyMutationObserver._pending) return;
+      const hasLazy = mutations.some((m) =>
+        Array.prototype.some.call(m.addedNodes, (node) =>
+          node.nodeType === 1 &&
+          (node.matches?.('.lazy') || !!node.querySelector?.('.lazy'))
+        )
+      );
+      if (!hasLazy) return;
+      window.lazyMutationObserver._pending = requestAnimationFrame(() => {
+        window.lazyMutationObserver._pending = null;
+        window.lazyLoadInstance?.update();
+      });
+    });
+    window.lazyMutationObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  window.wrapLazyloadImages = (container) => {
+    if (typeof container === 'string') {
+      container = document.querySelector(container);
+    }
+    if (!container) return;
+
+    const images = container.querySelectorAll('img');
+    images.forEach((img) => {
+      if (img.classList.contains('lazy')) return;
+
+      const src = img.getAttribute('src');
+      if (!src) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'lazy-box';
+
+      const newImg = img.cloneNode();
+      newImg.removeAttribute('src');
+      newImg.setAttribute('data-src', src);
+      newImg.classList.add('lazy');
+
+      const icon = document.createElement('div');
+      icon.className = 'lazy-icon';
+      if (def.loading) {
+        icon.style.backgroundImage = `url("${def.loading}")`;
+      }
+
+      wrapper.appendChild(newImg);
+      wrapper.appendChild(icon);
+
+      img.replaceWith(wrapper);
+    });
+
+    // 通知 LazyLoad 更新
+    if (window.lazyLoadInstance?.update) {
+      window.lazyLoadInstance.update();
+    }
+  }
+</script>
+<script async src="https://gcore.jsdelivr.net/npm/vanilla-lazyload@19.1/dist/lazyload.min.js"></script>
+
+
+<!-- optional -->
+
+  <script type="module">
+  (function() {
+    
+    function initUtterances() {
+      const el = document.querySelector("#comments #utterances");
+      if (!el) return;
+      
+      function load_utterances() {
+        utils.css('/css/comments/utterances.css?v=1.41.0');
+        try {
+          el.innerHTML = '';
+        } catch (error) {
+          console.error(error);
+        }
+        const script = document.createElement('script');
+        script.src = 'https://utteranc.es/client.js';
+        script.async = true;
+        for (const key of Object.keys(el.attributes)) {
+          const attr = el.attributes[key];
+          if (['class', 'id'].includes(attr.name) === false) {
+            script.setAttribute(attr.name, attr.value);
+          }
+        }
+        el.appendChild(script);
+      }
+      
+      util.viewportLazyload(el, load_utterances);
+    }
+    
+    // Initialize on page load
+    initUtterances();
+  })();
+</script>
+
+
+
+
+<script defer src="/js/services.js?v=1.41.0"></script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = Object.assign({}, ctx.search, {
+      path: `/search.json`,
+      local_search: {"field":"all","path":"/search.json","content":true,"lazy_load":true,"cache_ttl":86400,"skip_search":null,"sort":"-date"},
+    });
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script>
+<script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://gcore.jsdelivr.net/npm/flying-pages@2/flying-pages.min.js"></script><script>
+  ctx.fancybox = {
+    mode: `auto`,
+    selector: `.timenode p>img`,
+    css: `https://gcore.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css`,
+    js: `https://gcore.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js`
+  };
+  // auto=按需：页面存在可弹窗图片才加载；global=全局：所有页面加载
+  const isGlobal = ctx.fancybox.mode === 'global';
+  // 评论区图片（artalk/twikoo/waline）显示较小，自动支持放大；
+  // 仅绑定各评论服务的评论内容区，编辑器、表情面板等非内容区图片不弹窗
+  var selector = '[data-fancybox]:not(.error), .with-fancybox .atk-content img:not([atk-emoticon]):not([class*="emo"]), .with-fancybox .tk-content img:not([atk-emoticon]):not([class*="emo"]), .with-fancybox .wl-content img:not([atk-emoticon]):not([class*="emo"])';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = isGlobal;
+  if (!needFancybox) {
+    needFancybox = document.querySelectorAll(selector).length !== 0;
+    if (!needFancybox) {
+      // 图片型评论系统容器：评论区图片小图需要 fancybox
+      const withFancybox = document.getElementsByClassName('with-fancybox');
+      if (withFancybox != undefined && withFancybox.length > 0) {
+        needFancybox = true;
+      }
+    }
+    if (!needFancybox) {
+      // 动态数据服务：memos 渲染的图片需要 fancybox
+      const memos = document.getElementsByClassName('ds-memos');
+      if (memos != undefined && memos.length > 0) {
+        needFancybox = true;
+      }
+    }
+  }
+  if (needFancybox) {
+    utils.css(`/css/plugins/fancybox.css?v=1.41.0`);
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      if (isGlobal) {
+        // 全局模式：正文所有非内联图片均可弹窗
+        selector += ', .md-text img:not(.inline):not([atk-emoticon])';
+      }
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  utils.initPlugin(() => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`/css/plugins/swiper.css?v=1.41.0`);
+      utils.css(`https://unpkg.com/swiper@10.3/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  }, 'swiper');
+</script>
+<script>
+  utils.initPlugin(() => {
+    const els = Array.prototype.slice.call(document.querySelectorAll('.slide-up'));
+    if (els.length === 0) return;
+
+    // 吸顶/固定定位容器内的元素始终在视口内（或由容器控制显隐），
+    // 但 ScrollReveal 按文档坐标判断可见性，会误判这类元素为不可见，
+    // 导致带锚点/恢复滚动位置打开页面时组件一直不显示。
+    // 解决方式：以最近的吸顶/固定祖先作为该组元素的容器，
+    // 使可见性判断恒成立，入场动画保留且不再依赖主文档滚动。
+    const findPinnedContainer = (el) => {
+      let node = el;
+      while (node && node.nodeType === 1) {
+        const pos = window.getComputedStyle(node).position;
+        if (pos === 'sticky' || pos === 'fixed') return node;
+        node = node.parentElement;
+      }
+      return null;
+    };
+
+    // 最近的滚动容器（overflow-y: auto/scroll）
+    // 吸顶容器内可能存在内部滚动容器（如侧栏 .widgets），
+    // 若直接用吸顶容器做 reveal 容器，折叠区下方的元素永远不会进入视口，导致一直不显示。
+    const findScrollContainer = (el) => {
+      let node = el.parentElement;
+      while (node && node.nodeType === 1) {
+        const oy = window.getComputedStyle(node).overflowY;
+        if (oy === 'auto' || oy === 'scroll') return node;
+        node = node.parentElement;
+      }
+      return null;
+    };
+
+    const pinnedGroups = new Map(); // 容器 -> 元素列表
+    const targets = [];
+    els.forEach((el) => {
+      const pinned = findPinnedContainer(el);
+      if (pinned) {
+        // 优先使用最近的滚动容器，其次才用吸顶容器
+        const container = findScrollContainer(el) || pinned;
+        const group = pinnedGroups.get(container) || [];
+        group.push(el);
+        pinnedGroups.set(container, group);
+      } else {
+        targets.push(el);
+      }
+    });
+    if (pinnedGroups.size === 0 && targets.length === 0) return;
+
+    // 加载/初始化失败时兜底显示内容，避免整页空白
+    let fallbackApplied = false;
+    const revealFallback = () => {
+      if (fallbackApplied) return;
+      fallbackApplied = true;
+      document.documentElement.classList.add('sr-fallback');
+    };
+
+    const slideUp = {
+      distance: `8px`,
+      duration: `1000`,
+      interval: `100`,
+      scale: `1`,
+      opacity: 0,
+      easing: "ease-out"
+    };
+
+    // 看门狗：CDN 长时间无响应时强制显示内容
+    const watchdog = setTimeout(() => revealFallback(), 3000);
+
+    utils.js(`https://gcore.jsdelivr.net/npm/scrollreveal@4.0/dist/scrollreveal.min.js`, { defer: true })
+      .then(() => {
+        if (fallbackApplied) return;
+        if (typeof ScrollReveal !== 'function') {
+          revealFallback();
+          return;
+        }
+        try {
+          const sr = ScrollReveal();
+          if (targets.length > 0) {
+            sr.reveal(targets, { ...slideUp });
+          }
+          pinnedGroups.forEach((group, container) => {
+            sr.reveal(group, { ...slideUp, container: container });
+          });
+          clearTimeout(watchdog);
+        } catch (err) {
+          console.error('[Plugin scrollreveal] 初始化失败:', err);
+          revealFallback();
+        }
+      })
+      .catch((err) => {
+        console.error('[Plugin scrollreveal] 加载失败:', err);
+        revealFallback();
+      });
+  }, 'scrollreveal');
+</script>
+<script>
+  utils.initPlugin(() => {
+    const codeElements = document.querySelectorAll('.code');
+    if (codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js', { defer: true }).then(() => {
+        if (typeof createCopyButtons === 'function') {
+          createCopyButtons(codeElements);
+        }
+      });
+    }
+  }, 'copycode');
+</script>
+
+
+<!-- inject -->
+<script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="/js/music-player.js" defer></script>
+</div></body></html>

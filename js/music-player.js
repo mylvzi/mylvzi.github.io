@@ -1,0 +1,37 @@
+(function () {
+  function initPlayer() {
+    if (typeof window.APlayer !== 'function') {
+      return;
+    }
+
+    var existing = document.getElementById('aplayer');
+    var container = existing || document.createElement('div');
+    container.id = 'aplayer';
+    container.setAttribute('data-music-tip', '我最喜欢的音乐:晚风');
+    container.setAttribute('title', '我最喜欢的音乐:晚风');
+
+    if (!existing) {
+      document.body.appendChild(container);
+    }
+
+    window.lvziMusicPlayer = new window.APlayer({
+      container: container,
+      fixed: true,
+      autoplay: false,
+      audio: [
+        {
+          name: '歌曲名',
+          artist: '歌手',
+          url: '/music/song.mp3',
+          cover: '/images/avatar.png'
+        }
+      ]
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPlayer, { once: true });
+  } else {
+    initPlayer();
+  }
+})();
