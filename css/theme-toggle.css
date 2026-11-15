@@ -1,0 +1,715 @@
+/* ============================================================
+   极简温暖风格 — inspired by Claude Code web edition
+   ============================================================ */
+
+/* ---- Inline Code (亮色标签风格) ---- */
+.md-text p > code:not([class]),
+.md-text li > code:not([class]),
+.md-text blockquote code:not([class]) {
+  font-family: "JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  background: var(--code-bg);
+  color: var(--text);
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  border-left: 3px solid var(--accent);
+  margin: 0 0.1em;
+}
+
+:root {
+  /* 亮色 */
+  --bg: #faf8f5;
+  --bg-card: #ffffff;
+  --text: #3d3629;
+  --text-muted: #8a7e6e;
+  --accent: #c27a4a;
+  --accent-soft: rgba(194, 122, 74, 0.1);
+  --border: #e8e0d5;
+  --code-bg: #f5f2ed;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ---- 基础 ---- */
+body {
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
+.l_body,
+.l_main {
+  background: transparent;
+}
+
+/* ---- 导航栏 ---- */
+.navbar.top {
+  top: 12px;
+}
+
+.navbar-blur {
+  margin: 0 1rem;
+  box-shadow: var(--shadow);
+}
+
+.navbar-blur:before {
+  background: var(--bg-card) !important;
+}
+
+.navbar-blur:after {
+  box-shadow: inset 0 0 0 1px var(--border) !important;
+}
+
+.navbar nav a {
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+.navbar nav a.active {
+  background: transparent !important;
+  color: var(--text) !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.navbar nav a.active:after {
+  display: none;
+}
+
+/* ---- 侧边栏 ---- */
+.l_left .sidebg {
+  opacity: 0;
+}
+
+.l_left .leftbar-container:before {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.l_left .header a.avatar {
+  transform: none;
+}
+
+.l_left .header .title .main {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.l_left .header .title .sub {
+  color: var(--text-muted);
+}
+
+/* ---- 侧边栏小组件 ---- */
+.widgets .widget-wrapper.markdown {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+
+.widgets .widget-wrapper.markdown .widget-body {
+  padding: 14px;
+}
+
+/* ---- 侧边栏个人资料 ---- */
+.profile-card p {
+  margin: 0;
+}
+
+.profile-kicker {
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.profile-tagline,
+.profile-motto {
+  margin-top: 8px !important;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.profile-subtitle {
+  margin-top: 4px !important;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.profile-quote {
+  margin-top: 10px !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ---- 文章卡片 ---- */
+.post-list .post-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s ease;
+}
+
+.post-list .post-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.post-list .post-card .post-title {
+  margin-top: 0;
+  color: var(--text);
+}
+
+.post-list .post-card .excerpt > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.post-list .post-card .meta.cap {
+  gap: 8px 14px;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---- 代码块 ---- */
+.md-text figure.highlight,
+.md-text pre {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background: var(--code-bg);
+}
+
+/* ---- 音乐播放器 ---- */
+.aplayer.aplayer-fixed {
+  right: 0 !important;
+  left: auto !important;
+  z-index: 110;
+  color: var(--text);
+  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, "Microsoft Yahei", "Segoe UI", -apple-system, Roboto, Ubuntu, sans-serif;
+}
+
+.aplayer.aplayer-fixed .aplayer-body {
+  right: 0 !important;
+  left: auto !important;
+  transform: translateX(0) !important;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+}
+
+.aplayer.aplayer-fixed .aplayer-miniswitcher {
+  display: none !important;
+}
+
+.aplayer.aplayer-fixed::before {
+  position: fixed;
+  right: 16px;
+  bottom: 74px;
+  z-index: 111;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  content: attr(data-music-tip);
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.aplayer.aplayer-fixed:hover::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.aplayer .aplayer-info .aplayer-music .aplayer-title,
+.aplayer .aplayer-info .aplayer-music .aplayer-author {
+  color: inherit;
+}
+
+.aplayer .aplayer-bar .aplayer-played {
+  background: var(--accent) !important;
+}
+
+.aplayer .aplayer-bar .aplayer-played .aplayer-thumb {
+  background: var(--accent) !important;
+}
+
+.aplayer.aplayer-fixed .aplayer-lrc {
+  text-shadow: none;
+}
+
+@media screen and (max-width: 768px) {
+  .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body,
+  .aplayer.aplayer-fixed .aplayer-body {
+    max-width: calc(100vw - 88px);
+  }
+
+  .aplayer.aplayer-fixed::before {
+    right: 12px;
+    bottom: 68px;
+    max-width: calc(100vw - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ---- prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .post-list .post-card,
+  .post-list .post-card:hover {
+    transition: none;
+  }
+}
+
+/* ---- Reference inspired desktop layout ---- */
+:root {
+  --bg: #f5f4ed;
+  --bg-card: #fff;
+  --text: #24292f;
+  --text-muted: #6f7479;
+  --accent: #1d9bf0;
+  --border: #e3e2da;
+  --code-bg: #f5f4ed;
+  --shadow: 0 1px 3px rgba(30, 28, 24, 0.06);
+}
+
+html,
+body,
+.l_body,
+.l_main {
+  background: #f5f4ed !important;
+  color: #24292f;
+}
+
+.l_body {
+  display: block !important;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.l_body > .l_left,
+.l_body > .l_right,
+.l_body > .float-panel,
+.l_body > .main-mask {
+  display: none !important;
+}
+
+.l_body > .l_main {
+  width: min(100%, 1000px);
+  max-width: none;
+  margin: 0 auto;
+  padding: 76px 0 0;
+}
+
+.l_body > .l_main.hero-interior {
+  padding-top: 0;
+}
+
+.l_body > .l_main.hero-interior > .site-hero {
+  margin-top: 0 !important;
+}
+
+.l_body > .l_main.hero-home {
+  padding-top: 56px;
+}
+
+.l_body > .l_main.hero-interior .article-banner-wrap {
+  display: none !important;
+}
+
+body {
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 16px;
+  letter-spacing: 0.025em;
+  line-height: 1.7;
+}
+
+.site-hero {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(900px, calc(100% - 48px));
+  min-height: 260px;
+  margin: 0 auto 1.5rem;
+  padding: 48px 24px;
+  background: #26201a;
+  color: #f3ebdb;
+  text-align: center;
+}
+
+.site-hero-inner {
+  width: min(900px, 100%);
+}
+
+.site-hero h1 {
+  margin: 0;
+  color: #f3ebdb;
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: clamp(40px, 4vw, 56px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+}
+
+.site-hero p {
+  margin: 14px 0 0;
+  color: rgba(243, 235, 219, 0.74);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+
+.l_main .navbar.top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-blur {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid #e3e2da;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.navbar-blur:before,
+.navbar-blur:after {
+  display: none;
+}
+
+.navbar nav {
+  flex: 1;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 18px;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.site-brand {
+  flex: none;
+  color: #24292f;
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.site-brand:hover {
+  color: #24292f;
+}
+
+.navbar nav a {
+  padding: 7px 12px;
+  border-radius: 6px;
+  color: #6f7479;
+}
+
+.navbar nav a.active,
+.navbar nav a:hover {
+  background: transparent !important;
+  color: #24292f !important;
+  font-weight: 700;
+}
+
+.navbar-container > .search-wrapper {
+  order: 3;
+  flex: none;
+  width: 180px;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-container > .search-wrapper .search-form {
+  position: relative;
+  height: 38px;
+  gap: 8px;
+  padding: 0 9px;
+  border: 1px solid #e3e2da;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.navbar-container > .search-wrapper .search-form:before,
+.navbar-container > .search-wrapper .search-form:after {
+  display: none;
+}
+
+.navbar-container > .search-wrapper .search-input {
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.navbar-container > .search-wrapper #search-result,
+.navbar-container > .search-wrapper .search-no-result {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  z-index: 50;
+  width: 360px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(30, 28, 24, 0.12);
+}
+
+.l_main .post-list {
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.blog-index {
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+  padding-top: 8px;
+  color: #353a3f;
+}
+
+.blog-filters {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0 0 58px;
+}
+
+.blog-filter {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #85898c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.blog-filter:hover,
+.blog-filter.active {
+  color: #292e32;
+}
+
+.blog-filter.active {
+  font-weight: 700;
+}
+
+.blog-group {
+  margin: 0 0 48px;
+}
+
+.blog-group[hidden] {
+  display: none;
+}
+
+.blog-group h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 22px;
+  color: #353a3f;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.blog-group h2 span {
+  color: #81868a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.blog-group ul {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blog-group li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 24px;
+}
+
+.blog-group li a {
+  color: #353a3f;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.blog-group li a:hover {
+  color: #a16d46;
+}
+
+.blog-group li time {
+  color: #777c80;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.blog-empty {
+  margin: -28px 0 48px;
+  color: #777c80;
+  font-size: 17px;
+}
+
+.post-list .post-card-wrap {
+  margin: 0;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.post-list .post-card {
+  overflow: visible;
+  padding: 24px 4px 26px;
+  border-bottom: 1px solid #d9d8d0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  clip-path: none;
+}
+
+.post-list:not(.topic) .post-card.card-hover {
+  box-shadow: none;
+}
+
+.post-list .post-card:hover {
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.post-list .post-card .post-title {
+  margin: 0 0 8px;
+  color: #24292f;
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.post-list .post-card .excerpt {
+  margin: 8px 0 14px;
+  color: #4d5358;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.post-list .post-card .excerpt > p {
+  margin: 0;
+  color: inherit;
+  line-height: inherit;
+}
+
+.post-list .post-card .meta.cap,
+.post-list .post-card .meta.cap span {
+  color: #777c80;
+  font-size: 14px;
+}
+
+.post-list .post-card .meta.cap svg {
+  opacity: 0.52;
+}
+
+.post-list .post-card:hover .post-title::after {
+  content: none;
+}
+
+.l_main > .entry-content,
+.l_main .article.banner,
+.l_main .post-list,
+.l_main .archive,
+.l_main .widget-wrapper.markdown {
+  border-color: #e3e2da;
+}
+
+.article-banner-wrap {
+  width: min(900px, calc(100% - 48px));
+  margin: 24px auto 0;
+}
+
+.article.banner {
+  min-height: 220px;
+  border-radius: 8px;
+  background-color: #26201a;
+  box-shadow: none;
+}
+
+.article.banner .content .title,
+.article.banner .content h1 {
+  color: #f3ebdb;
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+}
+
+.article.banner .content .subtitle,
+.article.banner .content .meta-row,
+.article.banner .content .reading {
+  color: rgba(243, 235, 219, 0.75);
+}
+
+.l_main .post-list .post-card .md-text,
+.l_main .post-list .post-card .excerpt {
+  font-family: "TsangerJinKai02", "STKaiti", "KaiTi", "Songti SC", serif;
+}
+
+.l_main .post-list .post-card .meta.cap {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.l_main .post-list .post-card .md-text {
+  padding: 0;
+}
+
+.l_main .page-footer {
+  width: min(900px, calc(100% - 48px));
+  margin: 3rem auto;
+  color: #777c80;
+}
+
+.l_main .paginator-wrap {
+  width: min(900px, calc(100% - 48px));
+  margin: 2rem auto;
+}
+
+.aplayer.aplayer-fixed .aplayer-body {
+  border-radius: 8px;
+}
